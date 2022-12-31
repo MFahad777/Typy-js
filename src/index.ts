@@ -7,11 +7,14 @@ app.use(express.json());
 import { Rule } from "./Validation/Rule";
 
 const postw = new Rule({
-    id:[
+    hobbies:[
+        {
+            type:"required",
+        },
         {
             type:"in",
             params:{
-                values:["one","twos"]
+                values:["playing","gaming"]
             }
         }
     ]

@@ -9,7 +9,9 @@ export interface IRuleObjectSchemaDto {
             "in",
         message?:string,
         params?:{
-          [key : string] : any
+          min?:number,
+          max?:number,
+          values?:string[]
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

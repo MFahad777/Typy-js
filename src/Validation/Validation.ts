@@ -230,6 +230,7 @@ export class Validation {
 
         return toMatch
             .isMongoId()
+            .if((value : unknown) => value !== undefined)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
@@ -240,7 +241,6 @@ export class Validation {
      * @private
      */
     protected _in(validation_options : IValidationInDto) {
-
         const {
             field,
             checkIn = "any",
@@ -262,6 +262,7 @@ export class Validation {
                     : check(field)
 
         return toMatch
+            .if((value : unknown) => value !== undefined)
             .isIn(values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
