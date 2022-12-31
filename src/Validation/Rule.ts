@@ -1,33 +1,36 @@
+/**
+ * Third Party Import
+ */
 import {
-    check,
-    body,
-    param,
-    query,
     validationResult
 } from "express-validator";
 
 import { Request,Response,NextFunction } from "express";
 
+
+/**
+ * Local Import
+ */
+import { Validation } from "./Validation"
+
 /**
  * Importing DTOs
  */
 import {
-    IRequiredValidationDTO,
-    IIntegerValidationDTO,
-    IIsArrayValidationDTO,
-    ICustomValidationDTO,
-    IRuleObjectSchemaDto
+    IRuleObjectSchemaDto,
 } from "./dtos";
 
-type ISchemaObject = IRequiredValidationDTO | IIntegerValidationDTO | IIsArrayValidationDTO | ICustomValidationDTO;
-
-export class Rule {
+export class Rule extends Validation {
     private readonly schemaObj: IRuleObjectSchemaDto;
 
     constructor(Obj : IRuleObjectSchemaDto) {
+        super();
         this.schemaObj = Obj;
     }
 
+    /**
+     * Create Validations Based On Given Rule
+     */
     apply() {
 
         const schema : any = this.schemaObj;
@@ -39,7 +42,7 @@ export class Rule {
             const [ field, validation ] = value;
 
             // @ts-ignore
-            return validation.map((all_vals: ISchemaObject) => {
+            return validation.map((all_vals: any) => {
 
                 const {
                     type,
@@ -72,6 +75,9 @@ export class Rule {
                     case /^custom$/i.test(type):
                         return this._custom(all_vals);
 
+                    case /^mongoid$/i.test(type):
+                        return this._mongoID(all_vals);
+
                     default:
                         return []
                 }
@@ -80,184 +86,9 @@ export class Rule {
     }
 
     /**
-     * For Requiring Any Field
-     *
-     * @param {IRequiredValidationDTO} validation_options
-     * @return {ValidationChain}
-     */
-    private _required(validation_options : IRequiredValidationDTO) {
-
-        const {
-            field,
-            message = `The ${field} is required`,
-            customFunction,
-            checkIn = "any"
-        } = validation_options;
-
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : checkIn === "body"
-                        ? body(field)
-                        : check(field)
-
-        if (customFunction) {
-
-            return toMatch.custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field
-                }
-
-                return customFunction(toSend)
-            });
-        }
-
-        return toMatch.notEmpty().withMessage(message);
-    }
-
-    /**
-     * For Checking If Field Is An Integer
-     *
-     * @param {IIntegerValidationDTO} validation_options
-     * @return {ValidationChain}
-     */
-    private _integer(validation_options : IIntegerValidationDTO) {
-
-        const {
-            field,
-            message = `The ${field} must be of type integer`,
-            customFunction,
-            checkIn = "any"
-        } = validation_options;
-
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
-
-        if (customFunction) {
-            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field
-                }
-
-                return customFunction(toSend)
-            });
-        }
-
-        return toMatch.if((value : unknown) => value !== undefined).isInt().withMessage(message);
-    }
-
-    /**
-     * For Checking If The Field Is An Array
-     *
-     * @param {IIsArrayValidationDTO} validation_options
-     * @return {ValidationChain}
-     * @private
-     */
-    private _isArray(validation_options : IIsArrayValidationDTO) {
-        const {
-            field,
-            message = `The ${field} must be of type array`,
-            customFunction,
-            checkIn = "any",
-            params = {
-                min:undefined,
-                max:undefined
-            }
-        } = validation_options;
-
-        if (params) {
-
-            const allowedDataTypes = ["number","undefined","null"]
-
-            if (!params.hasOwnProperty("min") || !params.hasOwnProperty("max")) {
-                throw new Error(`The array validation only accepts 'min' and 'max' keys`);
-            }
-
-            if (!allowedDataTypes.includes(typeof params["min"]) || !allowedDataTypes.includes(typeof params["max"])) {
-                throw new Error(`The array validation params can only be of the following types ${allowedDataTypes}`)
-            }
-
-        }
-
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
-
-        if (customFunction) {
-            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field,
-                    params
-                }
-
-                return customFunction(toSend)
-            })
-        }
-
-        return toMatch.if((value : unknown) => value !== undefined).isArray(params).withMessage(message);
-    }
-
-    /**
-     * For Custom Validation
-     *
-     * @param validation_options
-     * @private
-     */
-    private _custom(validation_options : ICustomValidationDTO) {
-        const {
-            field,
-            customFunction,
-            checkIn = "any"
-        } = validation_options;
-
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
-
-        if (!customFunction)
-            throw new Error(`For validation type 'custom', customFunction is required`);
-
-        return toMatch.custom((value,reqObject) => {
-
-            const toSend = {
-                value,
-                reqObject,
-                field
-            }
-
-            return customFunction(toSend)
-        });
-    }
-
-    /**
      * Show Validation Errors Caught By The Rule
      *
-     * @param customFunction If want to modifiy the existing errors response
+     * @param customFunction If want to modify the existing errors response
      * @returns function<req,res,next>
      */
     showValidationErrors(customFunction? : Function | null | undefined) {
@@ -278,4 +109,5 @@ export class Rule {
         }
 
     }
+
 }

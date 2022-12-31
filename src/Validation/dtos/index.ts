@@ -1,5 +1,6 @@
-export { IRequiredValidationDTO } from "./rule.required.dto";
-export { IIntegerValidationDTO } from "./rule.integer.dto";
-export { IIsArrayValidationDTO } from "./rule.isarray.dto";
-export { ICustomValidationDTO } from "./rule.custom.dto";
-export { IRuleObjectSchemaDto } from "./rule.object.schema.dto";
+export { IRequiredValidationDTO } from "./validation.required.dto";
+export { IIntegerValidationDTO } from "./validation.integer.dto";
+export { IIsArrayValidationDTO } from "./validation.isarray.dto";
+export { ICustomValidationDTO } from "./validation.custom.dto";
+export { IRuleObjectSchemaDto } from "./validation.object.schema.dto";
+export { IValidationMongoidDto } from "./validation.mongoid.dto";

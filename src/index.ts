@@ -7,14 +7,9 @@ app.use(express.json());
 import { Rule } from "./Validation/Rule";
 
 const postw = new Rule({
-    first_name:[
+    id:[
         {
-            type:"required"
-        }
-    ],
-    last_name:[
-        {
-            type:"integer"
+            type:"mongoid"
         }
     ]
 })

@@ -1,4 +1,4 @@
-export interface RuleGeneralDto {
+export interface ValidationGeneralDto {
     type:string,
     field:string,
     message :string,
