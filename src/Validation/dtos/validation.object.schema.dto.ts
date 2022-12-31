@@ -1,12 +1,12 @@
 export interface IRuleObjectSchemaDto {
     [field : string] : {
-        type:string |
-            "required" |
+        type: "required" |
             "integer" |
             "isArray" |
             "array" |
             "custom" |
-            "mongoid",
+            "mongoid" |
+            "in",
         message?:string,
         params?:{
           [key : string] : any

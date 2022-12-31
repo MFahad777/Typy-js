@@ -11,7 +11,7 @@ const postw = new Rule({
         {
             type:"in",
             params:{
-                values:["abc","asdasd"]
+                values:["one","twos"]
             }
         }
     ]

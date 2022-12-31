@@ -240,6 +240,7 @@ export class Validation {
      * @private
      */
     protected _in(validation_options : IValidationInDto) {
+
         const {
             field,
             checkIn = "any",
@@ -248,6 +249,9 @@ export class Validation {
             },
             message = `The ${field} Must Be In ${values}`,
         } = validation_options;
+
+        if (values.length === 0)
+            throw new Error(`The 'in' validation must have params field with values`);
 
         const toMatch = checkIn === "any"
             ? check(field)
