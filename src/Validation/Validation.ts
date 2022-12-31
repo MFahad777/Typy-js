@@ -16,7 +16,8 @@ import {
     body,
     check,
     param,
-    query
+    query,
+    ValidationChain
 } from "express-validator";
 
 export class Validation {
