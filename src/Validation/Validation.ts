@@ -60,7 +60,9 @@ export class Validation {
             });
         }
 
-        return toMatch.notEmpty().withMessage(message);
+        return toMatch
+            .notEmpty()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
@@ -99,7 +101,10 @@ export class Validation {
             });
         }
 
-        return toMatch.if((value : unknown) => value !== undefined).isInt().withMessage(message);
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .isInt()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
@@ -157,7 +162,10 @@ export class Validation {
             })
         }
 
-        return toMatch.if((value : unknown) => value !== undefined).isArray(params).withMessage(message);
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .isArray(params)
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
@@ -218,7 +226,9 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
-        return toMatch.isMongoId().withMessage(message);
+        return toMatch
+            .isMongoId()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
 }

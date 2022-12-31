@@ -2,7 +2,8 @@
  * Third Party Import
  */
 import {
-    validationResult
+    validationResult,
+    ValidationChain
 } from "express-validator";
 
 import { Request,Response,NextFunction } from "express";
@@ -31,7 +32,7 @@ export class Rule extends Validation {
     /**
      * Create Validations Based On Given Rule
      */
-    createValidation() {
+    createValidation() : ValidationChain[] {
 
         const schema : any = this.schemaObj;
 
