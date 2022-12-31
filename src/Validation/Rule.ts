@@ -79,6 +79,9 @@ export class Rule extends Validation {
                     case /^mongoid$/i.test(type):
                         return this._mongoID(all_vals);
 
+                    case /^in$/i.test(type):
+                        return this._in(all_vals);
+
                     default:
                         return []
                 }

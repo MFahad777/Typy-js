@@ -9,7 +9,10 @@ import { Rule } from "./Validation/Rule";
 const postw = new Rule({
     id:[
         {
-            type:"mongoid",
+            type:"in",
+            params:{
+                values:["abc","asdasd"]
+            }
         }
     ]
 })

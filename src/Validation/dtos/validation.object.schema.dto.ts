@@ -9,7 +9,7 @@ export interface IRuleObjectSchemaDto {
             "mongoid",
         message?:string,
         params?:{
-          [key : string] : string | number | null | undefined
+          [key : string] : any
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

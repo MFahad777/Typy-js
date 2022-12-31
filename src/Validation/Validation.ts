@@ -6,7 +6,8 @@ import {
     IIntegerValidationDTO,
     IIsArrayValidationDTO,
     IRequiredValidationDTO,
-    IValidationMongoidDto
+    IValidationMongoidDto,
+    IValidationInDto
 } from "./dtos";
 
 /**
@@ -229,6 +230,35 @@ export class Validation {
 
         return toMatch
             .isMongoId()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To validate the field by the given values
+     *
+     * @param validation_options
+     * @private
+     */
+    protected _in(validation_options : IValidationInDto) {
+        const {
+            field,
+            checkIn = "any",
+            params: {
+                values = []
+            },
+            message = `The ${field} Must Be In ${values}`,
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch
+            .isIn(values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
