@@ -31,7 +31,7 @@ export class Rule extends Validation {
     /**
      * Create Validations Based On Given Rule
      */
-    apply() {
+    createValidation() {
 
         const schema : any = this.schemaObj;
 

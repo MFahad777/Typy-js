@@ -14,7 +14,7 @@ const postw = new Rule({
     ]
 })
 
-app.post('/',postw.apply(),postw.showValidationErrors(),(req: Request, res : Response) => {
+app.post('/',postw.createValidation(),postw.showValidationErrors(),(req: Request, res : Response) => {
     // @ts-ignore
     res.json({ "a":"HELLO" })
 })
