@@ -93,6 +93,9 @@ export class Rule extends Validation {
                     case /^isobject$/i.test(type):
                         return this._isObject(all_vals);
 
+                    case /^if$/i.test(type):
+                        return this._if(all_vals);
+
                     default:
                         return []
                 }

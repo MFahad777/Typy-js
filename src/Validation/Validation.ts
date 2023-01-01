@@ -450,7 +450,7 @@ export class Validation {
      * @param validation_options
      * @protected
      */
-    protected if(validation_options: IValidationIfDto) {
+    protected _if(validation_options: IValidationIfDto) {
         let {
             field,
             checkIn = "any",
@@ -484,9 +484,9 @@ export class Validation {
              * To use params in the messages
              */
             message = message
-                .replace(/(:secondField)/ig,`${params.secondField}`)
-                .replace(/(:secondFieldValue)/ig,`${params.secondFieldValue}`)
-                .replace(/(:appliedOnFieldValue)/ig,`${params.appliedOnFieldValue}`);
+                .replace(/:secondField/i,String(params.secondField))
+                .replace(/:secondFieldValue/i,String(params.secondFieldValue))
+                .replace(/:appliedOnFieldValue/i,String(params.appliedOnFieldValue));
 
             const getObject =
                 location === "body"
@@ -517,7 +517,7 @@ export class Validation {
                 /**
                  * If Field Actual Value Is Not Equal To Desired Value
                  */
-                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
                     return Promise.reject(message);
                 }
             }
@@ -538,7 +538,7 @@ export class Validation {
                 /**
                  * If Field Actual Value Is Not Equal To Desired Value
                  */
-                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
                     return Promise.reject(message);
                 }
             }
@@ -546,7 +546,7 @@ export class Validation {
             /**
              * If SecondFieldValue Passed By User And Actual Request Payload Value Matches
              */
-            if (isEqual(params.secondFieldValue,String(getFieldValue))) {
+            if (isEqual(String(params.secondFieldValue),String(getFieldValue))) {
 
                 /**
                  * If second Field Is Set To Some Value and the applied Field Set To Exists
@@ -559,7 +559,7 @@ export class Validation {
                 /**
                  * If Field Actual Value Is Not Equal To Desired Value
                  */
-                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
                     return Promise.reject(message);
                 }
             }
