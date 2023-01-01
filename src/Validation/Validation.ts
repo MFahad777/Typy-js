@@ -9,7 +9,8 @@ import {
     IValidationMongoidDto,
     IValidationInDto,
     IValidationNoinDto,
-    IValidationRangeorbetweenDto
+    IValidationRangeorbetweenDto,
+    IValidationIsobjectDto
 } from "./dtos";
 
 /**
@@ -54,17 +55,13 @@ export class Validation {
                         : check(field)
 
         if (customFunction) {
-
-            return toMatch.custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field
-                }
-
-                return customFunction(toSend)
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                message,
+                checkIn
+            }
+            return this._custom(customFunctionParams)
         }
 
         return toMatch
@@ -97,16 +94,13 @@ export class Validation {
                     : check(field)
 
         if (customFunction) {
-            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field
-                }
-
-                return customFunction(toSend)
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                message,
+                checkIn
+            }
+            return this._custom(customFunctionParams)
         }
 
         return toMatch
@@ -156,18 +150,16 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+
         if (customFunction) {
-            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field,
-                    params
-                }
-
-                return customFunction(toSend)
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                message,
+                params,
+                checkIn
+            }
+            return this._custom(customFunctionParams)
         }
 
         return toMatch
@@ -187,6 +179,7 @@ export class Validation {
             field,
             customFunction,
             checkIn = "any",
+            params,
             message,
         } = validation_options;
 
@@ -206,7 +199,8 @@ export class Validation {
             const toSend = {
                 value,
                 reqObject,
-                field
+                field,
+                params
             }
 
             return customFunction(toSend)
@@ -349,18 +343,16 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+
         if (customFunction) {
-            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
-
-                const toSend = {
-                    value,
-                    reqObject,
-                    field,
-                    params
-                }
-
-                return customFunction(toSend)
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                message,
+                params,
+                checkIn
+            }
+            return this._custom(customFunctionParams)
         }
 
         return toMatch.if((value : any) => value !== undefined).custom((value,{ req,location }) => {
@@ -412,6 +404,48 @@ export class Validation {
             return toCheck ? Promise.resolve : Promise.reject(message);
         }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
 
+    }
+
+    /**
+     * To validate that the field is a valid js object
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _isObject(validation_options : IValidationIsobjectDto) {
+        const {
+            field,
+            checkIn = "any",
+            params = {
+                strict:false
+            },
+            customFunction,
+            message = `The Field ${field} Must Be Of Type Object`,
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        if (customFunction) {
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                message,
+                params,
+                checkIn
+            }
+            return this._custom(customFunctionParams)
+        }
+
+        return toMatch
+            .if((value : any) => value !== undefined)
+            .isObject(params)
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
 }

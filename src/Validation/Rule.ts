@@ -89,6 +89,10 @@ export class Rule extends Validation {
                     case /^between$/i.test(type):
                         return this._rangeOrBetween(all_vals);
 
+                    case /^object$/i.test(type):
+                    case /^isobject$/i.test(type):
+                        return this._isObject(all_vals);
+
                     default:
                         return []
                 }
