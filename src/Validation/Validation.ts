@@ -417,7 +417,7 @@ export class Validation {
             field,
             checkIn = "any",
             params = {
-                strict:false
+                strict:true
             },
             customFunction,
             message = `The Field ${field} Must Be Of Type Object`,
