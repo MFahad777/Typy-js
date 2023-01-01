@@ -8,6 +8,9 @@ export interface IRuleObjectSchemaDto {
           values?:string[],
           type?:string,
           strict?:boolean,
+          secondField?:string,
+          secondFieldValue?:string,
+          appliedOnFieldValue?:string
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

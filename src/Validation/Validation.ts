@@ -10,7 +10,8 @@ import {
     IValidationInDto,
     IValidationNoinDto,
     IValidationRangeorbetweenDto,
-    IValidationIsobjectDto
+    IValidationIsobjectDto,
+    IValidationIfDto
 } from "./dtos";
 
 /**
@@ -24,7 +25,7 @@ import {
     ValidationChain
 } from "express-validator";
 
-import { get } from "lodash";
+import { get,isEqual } from "lodash";
 
 export class Validation {
 
@@ -441,6 +442,133 @@ export class Validation {
             .if((value : any) => value !== undefined)
             .isObject(params)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To validate a field on a condition
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected if(validation_options: IValidationIfDto) {
+        let {
+            field,
+            checkIn = "any",
+            params = {
+                secondField : "",
+                secondFieldValue : "",
+                appliedOnFieldValue : ""
+            },
+            message = `Invalid Value`,
+        } = validation_options;
+
+
+        if (params.secondField === "" || params.secondFieldValue === "" || params.appliedOnFieldValue === ""){
+            throw new Error("Validation (If) Excepts All 3 params to be passed" +
+                " params.secondField " +
+                " params.secondFieldValue " +
+                " params.appliedOnFieldValue ");
+        }
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch.custom((value,{ req, location }) => {
+
+            /**
+             * To use params in the messages
+             */
+            message = message
+                .replace(/(:secondField)/ig,`${params.secondField}`)
+                .replace(/(:secondFieldValue)/ig,`${params.secondFieldValue}`)
+                .replace(/(:appliedOnFieldValue)/ig,`${params.appliedOnFieldValue}`);
+
+            const getObject =
+                location === "body"
+                    ? req.body
+                    : location === "query"
+                    ? req.query
+                    : req.params;
+
+            const getFieldValue = get(
+                getObject,
+                params.secondField,
+                "exist_false"
+            );
+
+            /**
+             * If SecondFieldValue Is Set To Exists And The Actual Value Does Exist
+             */
+            if (params.secondFieldValue === "exists" && getFieldValue !== "exist_false") {
+
+                /**
+                 * If second Field Is Set To Exists and the applied Field Set To Exists
+                 * But In The Payload It's Not Present
+                 */
+                if (params.appliedOnFieldValue === "exists" && value == null) {
+                    return Promise.reject(message);
+                }
+
+                /**
+                 * If Field Actual Value Is Not Equal To Desired Value
+                 */
+                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                    return Promise.reject(message);
+                }
+            }
+
+            /**
+             * If SecondFieldValue Is Set To not Exists And The Actual Value Does Not Exist
+             */
+            if (params.secondFieldValue === "notexists" && getFieldValue === "exist_false") {
+
+                /**
+                 * If second Field Is Set To Exists and the applied Field Set To Exists
+                 * But In The Payload It's Not Present
+                 */
+                if (params.appliedOnFieldValue === "notexists" && value != null) {
+                    return Promise.reject(message);
+                }
+
+                /**
+                 * If Field Actual Value Is Not Equal To Desired Value
+                 */
+                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                    return Promise.reject(message);
+                }
+            }
+
+            /**
+             * If SecondFieldValue Passed By User And Actual Request Payload Value Matches
+             */
+            if (isEqual(params.secondFieldValue,String(getFieldValue))) {
+
+                /**
+                 * If second Field Is Set To Some Value and the applied Field Set To Exists
+                 * But In The Payload It's Not Present
+                 */
+                if (params.appliedOnFieldValue === "exists" && value == null) {
+                    return Promise.reject(message);
+                }
+
+                /**
+                 * If Field Actual Value Is Not Equal To Desired Value
+                 */
+                if (!isEqual(String(value),params.appliedOnFieldValue)) {
+                    return Promise.reject(message);
+                }
+            }
+
+            /**
+             * Pass the validation
+             */
+            return Promise.resolve();
+        })
     }
 
 }
