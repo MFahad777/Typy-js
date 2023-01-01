@@ -6,3 +6,4 @@ export { IRuleObjectSchemaDto } from "./validation.object.schema.dto";
 export { IValidationMongoidDto } from "./validation.mongoid.dto";
 export { IValidationInDto } from "./validation.in.dto";
 export { IValidationNoinDto } from "./validation.noin.dto";
+export { IValidationRangeorbetweenDto } from "./validation.rangeorbetween.dto";

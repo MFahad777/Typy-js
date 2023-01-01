@@ -8,7 +8,8 @@ import {
     IRequiredValidationDTO,
     IValidationMongoidDto,
     IValidationInDto,
-    IValidationNoinDto
+    IValidationNoinDto,
+    IValidationRangeorbetweenDto
 } from "./dtos";
 
 /**
@@ -21,6 +22,8 @@ import {
     query,
     ValidationChain
 } from "express-validator";
+
+import { get } from "lodash";
 
 export class Validation {
 
@@ -61,7 +64,7 @@ export class Validation {
                 }
 
                 return customFunction(toSend)
-            });
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
 
         return toMatch
@@ -103,7 +106,7 @@ export class Validation {
                 }
 
                 return customFunction(toSend)
-            });
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
 
         return toMatch
@@ -164,7 +167,7 @@ export class Validation {
                 }
 
                 return customFunction(toSend)
-            })
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
 
         return toMatch
@@ -183,7 +186,8 @@ export class Validation {
         const {
             field,
             customFunction,
-            checkIn = "any"
+            checkIn = "any",
+            message,
         } = validation_options;
 
         const toMatch = checkIn === "any"
@@ -206,7 +210,7 @@ export class Validation {
             }
 
             return customFunction(toSend)
-        });
+        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
@@ -302,6 +306,112 @@ export class Validation {
             .not()
             .isIn(values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To validate that the field values is in between the given values
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _rangeOrBetween(validation_options: IValidationRangeorbetweenDto) {
+        const {
+            field,
+            checkIn = "any",
+            params = {
+                min : 1,
+                max : 1,
+                type : "number"
+            },
+            customFunction,
+            message = `The Field ${field} Must Be Between ${params.min}${params.type === "field" ? "'value" : ''} and ${params.max}${params.type === "field" ? "'value" : ''}`,
+        } = validation_options;
+
+        const supportedTypes = ["number","date","field"];
+
+        if (!params.min || params.min === "")
+            throw new Error("'between' validation first param (min value) is required")
+
+        if (!params.max || params.max === "")
+            throw new Error("'between' validation second param (max value) is required")
+
+        if (typeof params.min !== typeof params.max)
+            throw new Error("'between' validation params (min and max) must be of same datatype")
+
+        if (!supportedTypes.includes(params.type))
+            throw new Error(`'between' validation third param (Optional) can only contain ${supportedTypes}`)
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        if (customFunction) {
+            return toMatch.if((value : unknown) => value !== undefined).custom((value,reqObject) => {
+
+                const toSend = {
+                    value,
+                    reqObject,
+                    field,
+                    params
+                }
+
+                return customFunction(toSend)
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+
+        return toMatch.if((value : any) => value !== undefined).custom((value,{ req,location }) => {
+
+            const getObject =
+                location === "body"
+                    ? req.body
+                    : location === "query"
+                    ? req.query
+                    : req.params;
+
+            const isBetweenNumber = params.type === "number"
+                ? (value > +params.min) && (value < +params.max)
+                : false;
+
+            const isBetweenDate = params.type === "date"
+                ? (new Date(value) > new Date(params.min)) && (new Date(value) < new Date(params.max))
+                : false;
+
+            let isBetweenFieldValue = false;
+
+            if (params.type === "field") {
+                // @ts-ignore
+                const minValueOfTheField = get(getObject,params.min)
+                // @ts-ignore
+                const maxValueOfTheField = get(getObject,params.max);
+
+                //To get a boolean value
+                const isDate = !isNaN(Date.parse(minValueOfTheField)) && !isNaN(Date.parse(maxValueOfTheField));
+
+                /**
+                 * If isDate is true
+                 */
+                if (isDate) {
+                    isBetweenFieldValue = (new Date(value) > new Date(minValueOfTheField)) && (new Date(value) < new Date(maxValueOfTheField))
+                }
+                else {
+                    isBetweenFieldValue = (value > minValueOfTheField) && (value < maxValueOfTheField)
+                }
+
+            }
+
+            const toCheck = params.type === "number"
+                ? isBetweenNumber
+                : params.type === "date"
+                    ? isBetweenDate
+                    : isBetweenFieldValue;
+
+            return toCheck ? Promise.resolve : Promise.reject(message);
+        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+
     }
 
 }

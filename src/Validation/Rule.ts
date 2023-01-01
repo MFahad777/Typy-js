@@ -85,6 +85,10 @@ export class Rule extends Validation {
                     case /^notin$/i.test(type):
                         return this._notIn(all_vals);
 
+                    case /^range$/i.test(type):
+                    case /^between$/i.test(type):
+                        return this._rangeOrBetween(all_vals);
+
                     default:
                         return []
                 }

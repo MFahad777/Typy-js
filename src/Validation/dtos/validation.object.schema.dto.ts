@@ -6,12 +6,16 @@ export interface IRuleObjectSchemaDto {
             "array" |
             "custom" |
             "mongoid" |
-            "in",
+            "in" |
+            "notin" |
+            "range" |
+            "between",
         message?:string,
         params?:{
           min?:number,
           max?:number,
-          values?:string[]
+          values?:string[],
+          type?:string,
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"
