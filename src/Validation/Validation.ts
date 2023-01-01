@@ -58,7 +58,6 @@ export class Validation {
             const customFunctionParams : ICustomValidationDTO = {
                 field,
                 customFunction,
-                message,
                 checkIn
             }
             return this._custom(customFunctionParams)
@@ -97,9 +96,9 @@ export class Validation {
             const customFunctionParams : ICustomValidationDTO = {
                 field,
                 customFunction,
-                message,
                 checkIn
             }
+
             return this._custom(customFunctionParams)
         }
 
@@ -155,7 +154,6 @@ export class Validation {
             const customFunctionParams : ICustomValidationDTO = {
                 field,
                 customFunction,
-                message,
                 params,
                 checkIn
             }
@@ -180,7 +178,6 @@ export class Validation {
             customFunction,
             checkIn = "any",
             params,
-            message,
         } = validation_options;
 
         const toMatch = checkIn === "any"
@@ -204,7 +201,7 @@ export class Validation {
             }
 
             return customFunction(toSend)
-        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        })
     }
 
     /**
@@ -348,7 +345,6 @@ export class Validation {
             const customFunctionParams : ICustomValidationDTO = {
                 field,
                 customFunction,
-                message,
                 params,
                 checkIn
             }
@@ -435,7 +431,6 @@ export class Validation {
             const customFunctionParams : ICustomValidationDTO = {
                 field,
                 customFunction,
-                message,
                 params,
                 checkIn
             }
