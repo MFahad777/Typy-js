@@ -96,6 +96,9 @@ export class Rule extends Validation {
                     case /^if$/i.test(type):
                         return this._if(all_vals);
 
+                    case /^arraynotempty$/i.test(type):
+                        return this._arrayNotEmpty(all_vals);
+
                     default:
                         return []
                 }

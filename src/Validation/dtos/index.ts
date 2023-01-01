@@ -9,3 +9,4 @@ export { IValidationNoinDto } from "./validation.noin.dto";
 export { IValidationRangeorbetweenDto } from "./validation.rangeorbetween.dto";
 export { IValidationIsobjectDto } from "./validation.isobject.dto";
 export { IValidationIfDto } from "./validation.if.dto";
+export { IValidationArraynotemptyDto } from "./validation.arraynotempty.dto";

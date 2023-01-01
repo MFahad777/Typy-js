@@ -11,7 +11,8 @@ import {
     IValidationNoinDto,
     IValidationRangeorbetweenDto,
     IValidationIsobjectDto,
-    IValidationIfDto
+    IValidationIfDto,
+    IValidationArraynotemptyDto
 } from "./dtos";
 
 /**
@@ -569,6 +570,50 @@ export class Validation {
              */
             return Promise.resolve();
         })
+    }
+
+    /**
+     * To validate that the field does not contain an empty array
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _arrayNotEmpty(validation_options: IValidationArraynotemptyDto) {
+        const {
+            field,
+            checkIn = "any",
+            message = `The ${field} must not be empty array`,
+            customFunction
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        if (customFunction) {
+
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                checkIn
+            }
+
+            return this._custom(customFunctionParams)
+        }
+
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .custom((value) => {
+                return value.length > 0
+                    ? Promise.resolve()
+                    : Promise.reject(message);
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+
     }
 
 }
