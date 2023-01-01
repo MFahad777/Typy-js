@@ -7,7 +7,8 @@ import {
     IIsArrayValidationDTO,
     IRequiredValidationDTO,
     IValidationMongoidDto,
-    IValidationInDto
+    IValidationInDto,
+    IValidationNoinDto
 } from "./dtos";
 
 /**
@@ -28,6 +29,7 @@ export class Validation {
      *
      * @param {IRequiredValidationDTO} validation_options
      * @return {ValidationChain}
+     * @protected
      */
     protected _required(validation_options : IRequiredValidationDTO) {
 
@@ -72,6 +74,7 @@ export class Validation {
      *
      * @param {IIntegerValidationDTO} validation_options
      * @return {ValidationChain}
+     * @protected
      */
     protected _integer(validation_options : IIntegerValidationDTO) {
 
@@ -238,7 +241,7 @@ export class Validation {
      * To validate the field by the given values
      *
      * @param validation_options
-     * @private
+     * @protected
      */
     protected _in(validation_options : IValidationInDto) {
         const {
@@ -263,6 +266,40 @@ export class Validation {
 
         return toMatch
             .if((value : unknown) => value !== undefined)
+            .isIn(values)
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To validate that the field values not in the provided values
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _notIn(validation_options : IValidationNoinDto) {
+        const {
+            field,
+            checkIn = "any",
+            params: {
+                values = []
+            },
+            message = `The ${field} Must Not In ${values}`,
+        } = validation_options;
+
+        if (values.length === 0)
+            throw new Error(`The 'notIn' validation must have params field with values`);
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .not()
             .isIn(values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }

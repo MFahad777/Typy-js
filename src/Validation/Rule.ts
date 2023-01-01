@@ -82,6 +82,9 @@ export class Rule extends Validation {
                     case /^in$/i.test(type):
                         return this._in(all_vals);
 
+                    case /^notin$/i.test(type):
+                        return this._notIn(all_vals);
+
                     default:
                         return []
                 }
