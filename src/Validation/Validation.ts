@@ -819,7 +819,10 @@ export class Validation {
             params = {
                 min:undefined,
                 max:undefined
-            },
+            }
+        } = validation_options;
+
+        let {
             message
         } = validation_options;
 
@@ -832,9 +835,17 @@ export class Validation {
                     : check(field)
 
 
+        /**
+         * Including the params value by replacing with a tag
+         */
+        message = message.replace(/(:min)/ig,`${params.min}`);
+        message = message.replace(/(:max)/ig,`${params.max}`);
+
+
         return toMatch
             .if((value : unknown) => value !== undefined)
             .isString()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
             .isLength(params)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }

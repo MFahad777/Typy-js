@@ -34,10 +34,11 @@ export class Rule extends Validation {
      */
     createValidation() : ValidationChain[] {
 
-        const schema : any = this.schemaObj;
+        const schema : IRuleObjectSchemaDto = this.schemaObj;
 
         const Data = Object.entries(schema);
 
+        // @ts-ignore
         return Data.map((value) => {
 
             const [ field, validation ] = value;
@@ -131,7 +132,7 @@ export class Rule extends Validation {
      * @param customFunction If want to modify the existing errors response
      * @returns function<req,res,next>
      */
-    showValidationErrors(customFunction? : Function | null | undefined) {
+    showValidationErrors(customFunction? : Function) {
 
         return (req : Request,res : Response ,next: NextFunction) => {
             const errors = validationResult(req);
