@@ -16,7 +16,8 @@ import {
     IValidationCustomSanitizerDto,
     IValidationLowercaseDto,
     IValidationUppercaseDto,
-    IValidationRequiredIfNotDto
+    IValidationRequiredIfNotDto,
+    IValidationIsstringDto
 } from "./dtos";
 
 /**
@@ -803,5 +804,38 @@ export class Validation {
             return Promise.resolve();
         });
 
+    }
+
+    /**
+     * To validate that the field is of type string.
+     *
+     * @param {IValidationIsstringDto} validation_options
+     * @protected
+     */
+    protected _isString(validation_options: IValidationIsstringDto) {
+        const {
+            field,
+            checkIn = "any",
+            params = {
+                min:undefined,
+                max:undefined
+            },
+            message
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .isString()
+            .isLength(params)
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 }

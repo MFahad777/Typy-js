@@ -114,6 +114,10 @@ export class Rule extends Validation {
                     case /^requiredifnot$/i.test(type):
                         return this._requiredIfNot(all_vals);
 
+                    case /^isstring$/i.test(type):
+                    case /^string$/i.test(type):
+                        return this._isString(all_vals);
+
                     default:
                         return []
                 }
