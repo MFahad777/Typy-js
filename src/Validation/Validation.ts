@@ -903,7 +903,7 @@ export class Validation {
         } = validation_options;
 
         let {
-            message
+            message = "Invalid Value"
         } = validation_options;
 
         const toMatch = checkIn === "any"
