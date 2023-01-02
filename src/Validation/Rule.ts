@@ -102,6 +102,14 @@ export class Rule extends Validation {
                     case /^customsanitizer$/i.test(type):
                         return this._customSanitizer(all_vals);
 
+                    case /^lowercase$/i.test(type):
+                    case /^lc$/i.test(type):
+                        return this._lowerCase(all_vals);
+
+                    case /^uppercase$/i.test(type):
+                    case /^uc$/i.test(type):
+                        return this._upperCase(all_vals);
+
                     default:
                         return []
                 }

@@ -11,3 +11,5 @@ export { IValidationIsobjectDto } from "./validation.isobject.dto";
 export { IValidationIfDto } from "./validation.if.dto";
 export { IValidationArraynotemptyDto } from "./validation.arraynotempty.dto";
 export { IValidationCustomSanitizerDto } from "./validation.customsanitizer.dto";
+export { IValidationLowercaseDto } from "./validation.lowercase.dto";
+export { IValidationUppercaseDto } from "./validation.uppercase.dto";

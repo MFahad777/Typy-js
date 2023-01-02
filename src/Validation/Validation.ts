@@ -13,7 +13,9 @@ import {
     IValidationIsobjectDto,
     IValidationIfDto,
     IValidationArraynotemptyDto,
-    IValidationCustomSanitizerDto
+    IValidationCustomSanitizerDto,
+    IValidationLowercaseDto,
+    IValidationUppercaseDto
 } from "./dtos";
 
 /**
@@ -24,7 +26,8 @@ import {
     check,
     param,
     query,
-    ValidationChain
+    ValidationChain,
+    SanitizationChain
 } from "express-validator";
 
 import { get,isEqual } from "lodash";
@@ -651,5 +654,59 @@ export class Validation {
 
             return customFunction(toSend)
         })
+    }
+
+    /**
+     * To convert the field's value into lowercase
+     *
+     * @param validation_options
+     * @protected
+     * @sanitizer
+     */
+    protected _lowerCase(validation_options: IValidationLowercaseDto) {
+        const {
+            field,
+            checkIn = "any",
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .toLowerCase()
+    }
+
+    /**
+     * To convert the field's value into lowercase
+     *
+     * @param validation_options
+     * @protected
+     * @sanitizer
+     */
+    protected _upperCase(validation_options: IValidationUppercaseDto) {
+        const {
+            field,
+            checkIn = "any",
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .toUpperCase()
     }
 }
