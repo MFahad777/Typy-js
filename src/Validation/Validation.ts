@@ -17,7 +17,8 @@ import {
     IValidationLowercaseDto,
     IValidationUppercaseDto,
     IValidationRequiredIfNotDto,
-    IValidationIsstringDto
+    IValidationIsstringDto,
+    IValidationDistinctDto
 } from "./dtos";
 
 /**
@@ -29,10 +30,9 @@ import {
     param,
     query,
     ValidationChain,
-    SanitizationChain
 } from "express-validator";
 
-import { get,isEqual } from "lodash";
+import { get,isEqual,flattenDeep,uniqWith,map } from "lodash";
 
 export class Validation {
 
@@ -126,13 +126,16 @@ export class Validation {
     protected _isArray(validation_options : IIsArrayValidationDTO) {
         const {
             field,
-            message = `The ${field} must be of type array`,
             customFunction,
             checkIn = "any",
             params = {
                 min:undefined,
                 max:undefined
             }
+        } = validation_options;
+
+        let {
+            message = `The ${field} must be of type array`,
         } = validation_options;
 
         if (params) {
@@ -157,6 +160,12 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+        /**
+         * Replace with a tag
+         */
+        message = message
+            .replace(/:min/g,String(params.min))
+            .replace(/:max/g,String(params.max));
 
         if (customFunction) {
             const customFunctionParams : ICustomValidationDTO = {
@@ -250,13 +259,16 @@ export class Validation {
         const {
             field,
             checkIn = "any",
-            params: {
-                values = []
-            },
-            message = `The ${field} Must Be In ${values}`,
+            params = {
+                values : []
+            }
         } = validation_options;
 
-        if (values.length === 0)
+        let {
+            message = `The ${field} Must Be In ${params.values}`,
+        } = validation_options;
+
+        if (params.values.length === 0)
             throw new Error(`The 'in' validation must have params field with values`);
 
         const toMatch = checkIn === "any"
@@ -267,9 +279,14 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+        /**
+         * Replace with a tag
+         */
+        message = message.replace(/:values/g,String(params.values));
+
         return toMatch
             .if((value : unknown) => value !== undefined)
-            .isIn(values)
+            .isIn(params.values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
@@ -283,13 +300,16 @@ export class Validation {
         const {
             field,
             checkIn = "any",
-            params: {
-                values = []
+            params = {
+                values : []
             },
-            message = `The ${field} Must Not In ${values}`,
         } = validation_options;
 
-        if (values.length === 0)
+        let {
+            message = `The ${field} Must Not In ${params.values}`,
+        } = validation_options;
+
+        if (params.values.length === 0)
             throw new Error(`The 'notIn' validation must have params field with values`);
 
         const toMatch = checkIn === "any"
@@ -300,10 +320,16 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+
+        /**
+         * Replace the params value with a tag
+         */
+        message = message.replace(/:values/g,String(params.values));
+
         return toMatch
             .if((value : unknown) => value !== undefined)
             .not()
-            .isIn(values)
+            .isIn(params.values)
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
@@ -323,6 +349,9 @@ export class Validation {
                 type : "number"
             },
             customFunction,
+        } = validation_options;
+
+        let {
             message = `The Field ${field} Must Be Between ${params.min}${params.type === "field" ? "'value" : ''} and ${params.max}${params.type === "field" ? "'value" : ''}`,
         } = validation_options;
 
@@ -347,6 +376,14 @@ export class Validation {
                 : checkIn === "query"
                     ? query(field)
                     : check(field)
+
+
+        /**
+         * To use params in the messages
+         */
+        message = message
+            .replace(/:min/g,String(params.min))
+            .replace(/:max/g,String(params.max))
 
 
         if (customFunction) {
@@ -485,15 +522,15 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
-        return toMatch.custom((value,{ req, location }) => {
+        /**
+         * To use params in the messages
+         */
+        message = message
+            .replace(/:secondField/g,String(params.secondField))
+            .replace(/:secondFieldValue/g,String(params.secondFieldValue))
+            .replace(/:appliedOnFieldValue/g,String(params.appliedOnFieldValue));
 
-            /**
-             * To use params in the messages
-             */
-            message = message
-                .replace(/:secondField/,String(params.secondField))
-                .replace(/:secondFieldValue/,String(params.secondFieldValue))
-                .replace(/:appliedOnFieldValue/,String(params.appliedOnFieldValue));
+        return toMatch.custom((value,{ req, location }) => {
 
             const getObject =
                 location === "body"
@@ -751,15 +788,14 @@ export class Validation {
                     ? query(field)
                     : check(field)
 
+        /**
+         * To use params in the messages
+         */
+        message = message
+            .replace(/:secondField/g,String(params.secondField))
+            .replace(/:secondFieldValue/g,String(params.secondFieldValue))
+
         return toMatch.custom((value, { req, location }) => {
-
-            /**
-             * To use params in the messages
-             */
-            message = message
-                .replace(/:secondField/,String(params.secondField))
-                .replace(/:secondFieldValue/,String(params.secondFieldValue))
-
             const getObject =
                 location === "body"
                     ? req.body
@@ -802,8 +838,8 @@ export class Validation {
             }
 
             return Promise.resolve();
-        });
-
+        })
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
@@ -847,6 +883,107 @@ export class Validation {
             .isString()
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
             .isLength(params)
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To validate that the field has distinct values
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _distinct(validation_options: IValidationDistinctDto) {
+        const {
+            field,
+            checkIn = "any",
+            params = {
+                fieldToCheckWith:"",
+                uniqueCheckType:"unique_in"
+            }
+        } = validation_options;
+
+        let {
+            message
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+
+        if (
+            params.uniqueCheckType !== "unique_out" &&
+            params.uniqueCheckType !== "unique_in" &&
+            params.uniqueCheckType !== "unique_in_out"
+        )
+            throw new Error(
+                "UniqueCheckType (Second Argument) Values Can Only Be `unique_out (By Default), unique_in, unique_in_out`"
+            );
+
+        /**
+         * Replacing the params value by a tag
+         */
+        message = message.replace(/(:fieldToCheckWith)/ig,`${params.fieldToCheckWith}`);
+        message = message.replace(/(:uniqueCheckType)/ig,`${params.uniqueCheckType}`);
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .custom((value) => {
+                if (!Array.isArray(value))
+                    throw new Error("Validation Only Accept Arrays Values");
+
+                if (value.length === 0)
+                    throw new Error("Array Can't Be Empty")
+
+
+                //For Deep Level Checking
+                const pluckedValues = map(value, params.fieldToCheckWith);
+
+                if (params.uniqueCheckType === "unique_in") {
+                    const isUniqueInside = pluckedValues.every(
+                        (pluckedValue) => {
+                            const uniqueSet = new Set(pluckedValue);
+
+                            return uniqueSet.size === pluckedValue.length;
+                        }
+                    );
+
+                    return isUniqueInside
+                        ? Promise.resolve
+                        : Promise.reject(message);
+                }
+
+                if (params.uniqueCheckType === "unique_in_out") {
+                    const flattenArray = flattenDeep(pluckedValues);
+
+                    const isUniqueOutSide =
+                        new Set(flattenArray).size === flattenArray.length;
+
+                    return isUniqueOutSide
+                        ? Promise.resolve
+                        : Promise.reject(message);
+                }
+
+                if (Array.isArray(pluckedValues[0])) {
+                    const uniqueArrays = uniqWith(pluckedValues, isEqual);
+
+                    return uniqueArrays.length === pluckedValues.length
+                        ? Promise.resolve()
+                        : Promise.reject(message);
+                }
+
+                const isUniqueData =
+                    new Set(pluckedValues).size === pluckedValues.length;
+
+
+                return !isUniqueData
+                    ? Promise.reject(message)
+                    : Promise.resolve;
+            })
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 }

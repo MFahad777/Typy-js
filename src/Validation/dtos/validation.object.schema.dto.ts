@@ -10,7 +10,9 @@ export interface IRuleObjectSchemaDto {
           strict?:boolean,
           secondField?:string,
           secondFieldValue?:string,
-          appliedOnFieldValue?:string
+          appliedOnFieldValue?:string,
+          fieldToCheckWith?:string,
+          uniqueCheckType?:"unique_in" | "unique_out" | "unique_in_out"
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

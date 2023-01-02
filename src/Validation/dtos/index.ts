@@ -15,3 +15,4 @@ export { IValidationLowercaseDto } from "./validation.lowercase.dto";
 export { IValidationUppercaseDto } from "./validation.uppercase.dto";
 export { IValidationRequiredIfNotDto } from "./validation.requiredifnot.dto";
 export { IValidationIsstringDto } from "./validation.isstring.dto";
+export { IValidationDistinctDto } from "./validation.distinct.dto";

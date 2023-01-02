@@ -119,6 +119,9 @@ export class Rule extends Validation {
                     case /^string$/i.test(type):
                         return this._isString(all_vals);
 
+                    case /^distinct$/i.test(type):
+                        return this._distinct(all_vals);
+
                     default:
                         return []
                 }
