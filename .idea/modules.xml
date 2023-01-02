@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Typy.iml" filepath="$PROJECT_DIR$/.idea/Typy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Typytest/.idea/Typytest.iml" filepath="$PROJECT_DIR$/../Typytest/.idea/Typytest.iml" />
     </modules>
   </component>
 </project>

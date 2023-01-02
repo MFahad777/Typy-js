@@ -15,7 +15,8 @@ import {
     IValidationArraynotemptyDto,
     IValidationCustomSanitizerDto,
     IValidationLowercaseDto,
-    IValidationUppercaseDto
+    IValidationUppercaseDto,
+    IValidationRequiredIfNotDto
 } from "./dtos";
 
 /**
@@ -489,9 +490,9 @@ export class Validation {
              * To use params in the messages
              */
             message = message
-                .replace(/:secondField/i,String(params.secondField))
-                .replace(/:secondFieldValue/i,String(params.secondFieldValue))
-                .replace(/:appliedOnFieldValue/i,String(params.appliedOnFieldValue));
+                .replace(/:secondField/,String(params.secondField))
+                .replace(/:secondFieldValue/,String(params.secondFieldValue))
+                .replace(/:appliedOnFieldValue/,String(params.appliedOnFieldValue));
 
             const getObject =
                 location === "body"
@@ -708,5 +709,99 @@ export class Validation {
         return toMatch
             .if((value : unknown) => value !== undefined)
             .toUpperCase()
+    }
+
+    /**
+     * To validate that field is required if the other field value not exists/have some certain value.
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _requiredIfNot(validation_options: IValidationRequiredIfNotDto) {
+
+        const {
+            field,
+            checkIn = "any",
+            params = {
+                secondField:"",
+                secondFieldValue:""
+            }
+        } = validation_options;
+
+        let {
+            message = "Invalid Value"
+        } = validation_options;
+
+        if (params.secondField === "" && !params.secondField)
+            throw new Error(
+                "'required_if_not' Validation Expect 'secondField' not empty"
+            );
+
+        if (params.secondFieldValue === "" && !params.secondFieldValue)
+            throw new Error(
+                "'required_if_not' Validation Expect 'secondFieldValue' not empty"
+            );
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch.custom((value, { req, location }) => {
+
+            /**
+             * To use params in the messages
+             */
+            message = message
+                .replace(/:secondField/,String(params.secondField))
+                .replace(/:secondFieldValue/,String(params.secondFieldValue))
+
+            const getObject =
+                location === "body"
+                    ? req.body
+                    : location === "query"
+                    ? req.query
+                    : req.params;
+
+            const appliedFieldValueIsEmpty = value === undefined || value === null || value === "" || value?.length === 0;
+
+            const paramValue = get(
+                getObject,
+                params.secondField,
+                undefined
+            );
+
+            /**
+             * If the secondFieldValue passed is 'exists'
+             * and the actualValue is not undefined
+             * but the field value is empty
+             */
+            if (params.secondFieldValue === "exists" && paramValue !== undefined && appliedFieldValueIsEmpty) {
+                return Promise.reject(message);
+            }
+
+            /**
+             * If the secondFieldValue passed is 'notexists'
+             * and the actualValue is undefined
+             * but the field value is empty
+             */
+            if (params.secondFieldValue === "notexists" && paramValue === undefined && appliedFieldValueIsEmpty) {
+                return Promise.reject(message);
+            }
+
+            /**
+             * If the secondFieldValue is equal to the request payload value
+             * but the field value is empty
+             */
+            if (isEqual(String(paramValue),params.secondFieldValue) && appliedFieldValueIsEmpty) {
+                return Promise.reject(message);
+            }
+
+            return Promise.resolve();
+        });
+
     }
 }

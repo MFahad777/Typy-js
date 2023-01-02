@@ -13,3 +13,4 @@ export { IValidationArraynotemptyDto } from "./validation.arraynotempty.dto";
 export { IValidationCustomSanitizerDto } from "./validation.customsanitizer.dto";
 export { IValidationLowercaseDto } from "./validation.lowercase.dto";
 export { IValidationUppercaseDto } from "./validation.uppercase.dto";
+export { IValidationRequiredIfNotDto } from "./validation.requiredifnot.dto";

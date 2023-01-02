@@ -110,6 +110,10 @@ export class Rule extends Validation {
                     case /^uc$/i.test(type):
                         return this._upperCase(all_vals);
 
+                    case /^required_if_not$/i.test(type):
+                    case /^requiredifnot$/i.test(type):
+                        return this._requiredIfNot(all_vals);
+
                     default:
                         return []
                 }
