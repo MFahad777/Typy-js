@@ -12,7 +12,8 @@ import {
     IValidationRangeorbetweenDto,
     IValidationIsobjectDto,
     IValidationIfDto,
-    IValidationArraynotemptyDto
+    IValidationArraynotemptyDto,
+    IValidationCustomSanitizerDto
 } from "./dtos";
 
 /**
@@ -616,4 +617,39 @@ export class Validation {
 
     }
 
+    /**
+     * For Custom Validation
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _customSanitizer(validation_options : IValidationCustomSanitizerDto) {
+        const {
+            field,
+            customFunction,
+            checkIn = "any",
+        } = validation_options;
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        if (!customFunction)
+            throw new Error(`For validation type 'customSanitizer', customFunction is required`);
+
+        return toMatch.customSanitizer((value,reqObject) => {
+
+            const toSend = {
+                value,
+                reqObject,
+                field
+            }
+
+            return customFunction(toSend)
+        })
+    }
 }

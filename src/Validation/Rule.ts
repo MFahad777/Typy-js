@@ -97,7 +97,10 @@ export class Rule extends Validation {
                         return this._if(all_vals);
 
                     case /^arraynotempty$/i.test(type):
-                        return this._arrayNotEmpty(all_vals);
+                        return this._arrayNotEmpty(all_vals)
+
+                    case /^customsanitizer$/i.test(type):
+                        return this._customSanitizer(all_vals);
 
                     default:
                         return []
