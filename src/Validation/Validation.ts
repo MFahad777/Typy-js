@@ -18,7 +18,9 @@ import {
     IValidationUppercaseDto,
     IValidationRequiredIfNotDto,
     IValidationIsstringDto,
-    IValidationDistinctDto
+    IValidationDistinctDto,
+    IValidationExistsDto,
+    IValidationTrimDto
 } from "./dtos";
 
 /**
@@ -32,7 +34,17 @@ import {
     ValidationChain,
 } from "express-validator";
 
+import { ObjectId } from "mongodb";
+
 import { get,isEqual,flattenDeep,uniqWith,map } from "lodash";
+
+
+/**
+ * Local Imports
+ */
+import { MongoDB } from "../Database/Mongodb/MongoDB";
+import { Util } from "../Utils/Util";
+
 
 export class Validation {
 
@@ -44,7 +56,6 @@ export class Validation {
      * @protected
      */
     protected _required(validation_options : IRequiredValidationDTO) {
-
         const {
             field,
             message = `The ${field} is required`,
@@ -660,7 +671,7 @@ export class Validation {
     }
 
     /**
-     * For Custom Validation
+     * For Custom Sanitizer
      *
      * @param validation_options
      * @protected
@@ -985,5 +996,147 @@ export class Validation {
                     : Promise.resolve;
             })
             .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+    }
+
+    /**
+     * To check if the field value exists in the database
+     *
+     * @param validation_options
+     * @protected
+     *
+     * Supported Database are [MongoDB (With or Without Mongoose)]
+     */
+    protected _exists(validation_options: IValidationExistsDto) {
+
+        const {
+            field,
+            checkIn = "any",
+            customFunction,
+            params = {
+                database:"mongodb",
+                mongodbOptions : {
+                  databaseConnection: "",
+                  isFieldValueObjectId:false,
+                  databaseName:"",
+                  collection:"",
+                  query:""
+                },
+                mongoose:{
+                  model:"",
+                  query:""
+                },
+            }
+        } = validation_options;
+
+        let {
+            message = `The ${field} value does not exist in the db`
+        } = validation_options;
+
+        const supportedDatabasesDriver = ["mongodb","mongoose"];
+
+        if (!supportedDatabasesDriver.includes(params.database))
+            throw new Error(`Currently 'exists' validation only accepts 'mongodb' or 'mongoose'`);
+
+        /**
+         * If using mongodb
+         */
+        if (params.database === "mongodb") {
+
+            const allValues = Object.values(
+                Util.omitNNumberOfField(params.mongodbOptions,["isFieldValueObjectId"])
+            );
+
+            if (Util.checkFalsyValues(allValues)) {
+                throw new Error(`'exists' validation. If database is mongodb then 'params.mongodbOptions object values can't be empty`)
+            }
+        }
+
+        /**
+         * If using mongoose
+         */
+        if (params.database === "mongoose") {
+
+            const allValues = Object.values(params.mongoose);
+
+            if (Util.checkFalsyValues(allValues)) {
+                throw new Error(`'exists' validation. If database is mongoose then 'params.mongoose object values can't be empty`)
+            }
+        }
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+
+        // @ts-ignore
+        const mongodbInstance = new MongoDB(params.database, {
+            ...params.database === "mongodb"
+                ? params.mongodbOptions
+                : params.mongoose
+        })
+
+
+        /**
+         * If using a custom function
+         */
+        if (customFunction) {
+            const customFunctionParams : ICustomValidationDTO = {
+                field,
+                customFunction,
+                checkIn,
+                params
+            }
+
+            return this._custom(customFunctionParams)
+        }
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .custom(async (value) => {
+
+            const queryOf = params.database === "mongoose"
+                ? params.mongoose.query
+                : params.mongodbOptions.query;
+
+            const document = await mongodbInstance.findQuery(queryOf,value,params?.mongodbOptions?.isFieldValueObjectId,params?.mongoose?.model);
+
+            if (!document) {
+                return Promise.reject(message);
+            }
+
+            return Promise.resolve();
+        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));;
+
+    }
+
+    /**
+     * To trim string
+     *
+     * @param validation_options
+     * @protected
+     * @sanitizer
+     */
+    protected _trim(validation_options: IValidationTrimDto) {
+        const {
+            field,
+            checkIn = "any",
+        } = validation_options;
+
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .trim();
     }
 }

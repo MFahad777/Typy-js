@@ -16,3 +16,5 @@ export { IValidationUppercaseDto } from "./validation.uppercase.dto";
 export { IValidationRequiredIfNotDto } from "./validation.requiredifnot.dto";
 export { IValidationIsstringDto } from "./validation.isstring.dto";
 export { IValidationDistinctDto } from "./validation.distinct.dto";
+export { IValidationExistsDto } from "./validation.exists.dto";
+export { IValidationTrimDto } from "./validation.trim.dto";

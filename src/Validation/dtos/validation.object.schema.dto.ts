@@ -13,6 +13,18 @@ export interface IRuleObjectSchemaDto {
           appliedOnFieldValue?:string,
           fieldToCheckWith?:string,
           uniqueCheckType?:"unique_in" | "unique_out" | "unique_in_out"
+          database?:"mongodb" | "mongoose",
+          mongodbOptions? : {
+              databaseConnection: string,
+              isFieldValueObjectId:boolean,
+              databaseName:string,
+              collection:string,
+              query:object | string
+          },
+          mongoose? : {
+              model:any,
+              query:object | string
+          }
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

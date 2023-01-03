@@ -18,7 +18,7 @@ import { Validation } from "./Validation"
  * Importing DTOs
  */
 import {
-    IRuleObjectSchemaDto,
+    IRuleObjectSchemaDto
 } from "./dtos";
 
 export class Rule extends Validation {
@@ -34,11 +34,10 @@ export class Rule extends Validation {
      */
     createValidation() : ValidationChain[] {
 
-        const schema : IRuleObjectSchemaDto = this.schemaObj;
+        const schema : any = this.schemaObj;
 
         const Data = Object.entries(schema);
 
-        // @ts-ignore
         return Data.map((value) => {
 
             const [ field, validation ] = value;
@@ -121,6 +120,12 @@ export class Rule extends Validation {
 
                     case /^distinct$/i.test(type):
                         return this._distinct(all_vals);
+
+                    case /^exists$/i.test(type):
+                        return this._exists(all_vals);
+
+                    case /^trim$/i.test(type):
+                        return this._trim(all_vals);
 
                     default:
                         return []
