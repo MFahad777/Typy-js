@@ -1123,6 +1123,9 @@ export class Validation {
     protected _trim(validation_options: IValidationTrimDto) {
         const {
             field,
+            params = {
+                chars:""
+            },
             checkIn = "any",
         } = validation_options;
 
@@ -1137,6 +1140,6 @@ export class Validation {
 
         return toMatch
             .if((value : unknown) => value !== undefined)
-            .trim();
+            .trim(params.chars);
     }
 }
