@@ -19,7 +19,7 @@ export class Util {
      *
      * @param array
      */
-    static checkFalsyValues(array : Array<any>) {
+    static checkFalsyValues(array : Array<any>) : boolean {
         return array.some(value => !value);
     }
 
@@ -30,8 +30,8 @@ export class Util {
      * @param fields
      * @return Partial<ObjectConstructor>
      */
-    static omitNNumberOfField(obj : Object,fields: Array<string>) {
-        return omit(Object,fields)
+    static omitNNumberOfField(obj : Object,fields: Array<string>) : object {
+        return omit(obj,fields)
     }
 
     /**
