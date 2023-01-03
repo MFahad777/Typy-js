@@ -21,21 +21,16 @@ import {
     IValidationDistinctDto,
     IValidationExistsDto,
     IValidationTrimDto,
-    IValidationReplaceDto
+    IValidationReplaceDto,
+    IValidationIsjwtDto
 } from "./dtos";
 
 /**
  * Third Party Import
  */
 import {
-    body,
-    check,
-    param,
-    query,
     ValidationChain,
 } from "express-validator";
-
-import { ObjectId } from "mongodb";
 
 import { get,isEqual,flattenDeep,uniqWith,map } from "lodash";
 
@@ -64,15 +59,7 @@ export class Validation {
             checkIn = "any"
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : checkIn === "body"
-                        ? body(field)
-                        : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (customFunction) {
             const customFunctionParams : ICustomValidationDTO = {
@@ -104,13 +91,7 @@ export class Validation {
             checkIn = "any"
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (customFunction) {
             const customFunctionParams : ICustomValidationDTO = {
@@ -164,13 +145,7 @@ export class Validation {
 
         }
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         /**
          * Replace with a tag
@@ -209,13 +184,7 @@ export class Validation {
             params,
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (!customFunction)
             throw new Error(`For validation type 'custom', customFunction is required`);
@@ -247,13 +216,7 @@ export class Validation {
             checkIn = "any"
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         return toMatch
             .isMongoId()
@@ -283,13 +246,7 @@ export class Validation {
         if (params.values.length === 0)
             throw new Error(`The 'in' validation must have params field with values`);
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         /**
          * Replace with a tag
@@ -324,13 +281,7 @@ export class Validation {
         if (params.values.length === 0)
             throw new Error(`The 'notIn' validation must have params field with values`);
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
@@ -381,13 +332,7 @@ export class Validation {
         if (!supportedTypes.includes(params.type))
             throw new Error(`'between' validation third param (Optional) can only contain ${supportedTypes}`)
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
@@ -476,13 +421,7 @@ export class Validation {
             message = `The Field ${field} Must Be Of Type Object`,
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (customFunction) {
             const customFunctionParams : ICustomValidationDTO = {
@@ -526,13 +465,7 @@ export class Validation {
                 " params.appliedOnFieldValue ");
         }
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         /**
          * To use params in the messages
@@ -641,13 +574,7 @@ export class Validation {
             customFunction
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (customFunction) {
 
@@ -684,13 +611,7 @@ export class Validation {
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (!customFunction)
             throw new Error(`For validation type 'customSanitizer', customFunction is required`);
@@ -720,13 +641,7 @@ export class Validation {
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         return toMatch
@@ -747,13 +662,7 @@ export class Validation {
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         return toMatch
@@ -792,13 +701,7 @@ export class Validation {
                 "'required_if_not' Validation Expect 'secondFieldValue' not empty"
             );
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         /**
          * To use params in the messages
@@ -874,13 +777,7 @@ export class Validation {
             message
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
@@ -918,13 +815,7 @@ export class Validation {
             message = "Invalid Value"
         } = validation_options;
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         if (
@@ -1064,13 +955,7 @@ export class Validation {
             }
         }
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         // @ts-ignore
@@ -1131,13 +1016,7 @@ export class Validation {
         } = validation_options;
 
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         return toMatch
             .if((value : unknown) => value !== undefined)
@@ -1161,18 +1040,36 @@ export class Validation {
         } = validation_options;
 
 
-        const toMatch = checkIn === "any"
-            ? check(field)
-            : checkIn === "params"
-                ? param(field)
-                : checkIn === "query"
-                    ? query(field)
-                    : check(field)
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         return toMatch
             .if((value : unknown) => value !== undefined)
             .customSanitizer((value : string) => {
                 return value.replace(params.values_to_replace,params.new_value);
             })
+    }
+
+    /**
+     * To validate if the field's value is a valid jwt token
+     *
+     * @param validation_options
+     * @private
+     */
+    protected _isjwt(validation_options: IValidationIsjwtDto) {
+
+        const {
+            field,
+            checkIn = "any",
+        } = validation_options;
+
+        let {
+            message = "Invalid JWT Token"
+        } = validation_options;
+
+        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+        return toMatch
+            .isJWT()
+            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 }

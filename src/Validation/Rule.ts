@@ -130,6 +130,9 @@ export class Rule extends Validation {
                     case /^replace$/i.test(type):
                         return this._replace(all_vals);
 
+                    case /^isjwt$/i.test(type):
+                        return this._isjwt(all_vals);
+
                     default:
                         return []
                 }

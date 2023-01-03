@@ -18,4 +18,5 @@ export { IValidationIsstringDto } from "./validation.isstring.dto";
 export { IValidationDistinctDto } from "./validation.distinct.dto";
 export { IValidationExistsDto } from "./validation.exists.dto";
 export { IValidationTrimDto } from "./validation.trim.dto";
-export { IValidationReplaceDto } from "validation.replace.dto";
+export { IValidationReplaceDto } from "./validation.replace.dto";
+export { IValidationIsjwtDto } from "./validation.isjwt.dto";
