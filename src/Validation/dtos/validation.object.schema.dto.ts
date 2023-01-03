@@ -25,6 +25,9 @@ export interface IRuleObjectSchemaDto {
               model:any,
               query:object | string
           }
+          chars?:string,
+          values_to_replace: string | RegExp,
+          new_value: string
         },
         customFunction?: Function,
         checkIn?:"params" | "body" | "query" | "any"

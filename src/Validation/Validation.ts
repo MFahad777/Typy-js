@@ -20,7 +20,8 @@ import {
     IValidationIsstringDto,
     IValidationDistinctDto,
     IValidationExistsDto,
-    IValidationTrimDto
+    IValidationTrimDto,
+    IValidationReplaceDto
 } from "./dtos";
 
 /**
@@ -1141,5 +1142,37 @@ export class Validation {
         return toMatch
             .if((value : unknown) => value !== undefined)
             .trim(params.chars);
+    }
+
+    /**
+     * To replace field value
+     *
+     * @param validation_options
+     * @protected
+     */
+    protected _replace(validation_options: IValidationReplaceDto) {
+        const {
+            field,
+            params = {
+                values_to_replace: "",
+                new_value: ""
+            },
+            checkIn = "any",
+        } = validation_options;
+
+
+        const toMatch = checkIn === "any"
+            ? check(field)
+            : checkIn === "params"
+                ? param(field)
+                : checkIn === "query"
+                    ? query(field)
+                    : check(field)
+
+        return toMatch
+            .if((value : unknown) => value !== undefined)
+            .customSanitizer((value : string) => {
+                return value.replace(params.values_to_replace,params.new_value);
+            })
     }
 }

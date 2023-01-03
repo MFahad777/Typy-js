@@ -127,6 +127,9 @@ export class Rule extends Validation {
                     case /^trim$/i.test(type):
                         return this._trim(all_vals);
 
+                    case /^replace$/i.test(type):
+                        return this._replace(all_vals);
+
                     default:
                         return []
                 }
