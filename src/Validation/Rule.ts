@@ -121,9 +121,6 @@ export class Rule extends Validation {
                     case /^distinct$/i.test(type):
                         return this._distinct(all_vals);
 
-                    case /^exists$/i.test(type):
-                        return this._exists(all_vals);
-
                     case /^trim$/i.test(type):
                         return this._trim(all_vals);
 
