@@ -1,5 +1,5 @@
 {
-  "name": "typy",
+  "name": "typy-js",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -17,6 +17,7 @@
   "keywords": [
     "validations",
     "express validation"
+    "typy"
   ],
   "author": "Muhammad Fahad <m.fahad1161681@gmail.com>",
   "license": "MIT",
