@@ -13,6 +13,10 @@
     - [Example](#example)
   - [Validation.integer(validation_options)](#validationintegervalidation_options)
     - [Example](#example-1)
+  - [Validation.isArray(validation_options)](#validationisarrayvalidation_options)
+    - [Example](#example-2)
+  - [Validation.custom(validation_options)](#validationcustomvalidation_options)
+    - [Example](#example-3)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -211,6 +215,38 @@ const getPostRule = new Rule({
         })
     ]
 })
+```
+
+## Validation.custom(validation_options)
+
+A function that returns a validation middleware defined by the user.
+
+`validation_options (Required)`
+- `customFunction (Required)`: A custom validation function to be executed instead of the default validation.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Optional)`: Any extra values to be passed to the custom function
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  name:[
+    Validation.custom({
+      customFunction:({value, requestObject, field, param}) => {
+        return value.length > 5 ? Promise.resolve() : Promise.reject(`${field} length must be greater than 5`);
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
 ```
 
 # License 

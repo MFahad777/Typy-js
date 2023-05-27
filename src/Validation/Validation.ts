@@ -189,7 +189,7 @@ export class Validation {
      *
      * @param validation_options
      */
-    static custom(validation_options : ICustomValidationDto = {}) : Function {
+    static custom(validation_options : ICustomValidationDto) : Function {
 
         const {
             customFunction,
