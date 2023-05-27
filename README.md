@@ -2,6 +2,9 @@
 
 > A validation package for express js to validate incoming request payload.
 > It internally utilizes the express-validator library for input validation in Express.js applications.
+ 
+For more practical examples, please see tests suite, 
+there is separate test suite for each validation API.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
