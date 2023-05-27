@@ -1,4 +1,4 @@
-const { Rule } = require("../../dist");
+const { Rule, Validation } = require("../../dist");
 
 const request = require("supertest");
 
@@ -14,14 +14,10 @@ describe("Required Validation Rule", () => {
 
         const samplePostData = new Rule({
             name:[
-                {
-                    type:"required"
-                }
+                Validation.required()
             ],
             body:[
-                {
-                    type:"required"
-                }
+                Validation.required()
             ]
         });
 
@@ -55,16 +51,14 @@ describe("Required Validation Rule", () => {
 
         const samplePostData = new Rule({
             name:[
-                {
-                    type:"required",
+                Validation.required({
                     checkIn:"query"
-                }
+                })
             ],
             body:[
-                {
-                    type:"required",
+                Validation.required({
                     checkIn:"query"
-                }
+                })
             ]
         });
 
@@ -85,20 +79,18 @@ describe("Required Validation Rule", () => {
 
         const samplePostData = new Rule({
             name:[
-                {
-                    type:"required",
+                Validation.required({
                     customFunction:({value, requestObject, field, param}) => {
                         return Boolean(value) ? Promise.resolve() : Promise.reject("With Custom Function");
                     }
-                }
+                })
             ],
             body:[
-                {
-                    type:"required",
+                Validation.required({
                     customFunction:({value, requestObject, field, param}) => {
                         return Boolean(value) ? Promise.resolve() : Promise.reject("With Custom Function");
                     }
-                }
+                })
             ]
         });
 

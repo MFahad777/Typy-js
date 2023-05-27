@@ -15,6 +15,16 @@ import {
 export class Util {
 
     /**
+     * Replace the message with the actual field
+     *
+     * @param field
+     * @param message
+     */
+    static replaceMessageWithField(field : string ,message : string) : string {
+        return message.replace(/(:field)|(:attribute)/ig,field);
+    }
+
+    /**
      * To check if the array values are falsy
      *
      * @param array

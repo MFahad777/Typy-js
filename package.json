@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
@@ -20,7 +19,7 @@
     "express validation",
     "typy"
   ],
-  "author": "Muhammad Fahad <m.fahad1161681@gmail.com>",
+  "author": "Muhammad Fahad",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/MFahad777/Typy/issues"

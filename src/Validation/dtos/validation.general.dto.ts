@@ -1,10 +1,8 @@
 export interface ValidationGeneralDto {
-    type:string,
-    field:string,
-    message :string,
+    message? :string,
     params?: {
         [key : string] : any
     },
-    customFunction : Function | null | undefined,
-    checkIn:string
+    customFunction? : Function | null | undefined,
+    checkIn?: 'params' | 'body' | 'query' | 'any'
 }
