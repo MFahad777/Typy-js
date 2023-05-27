@@ -17,6 +17,8 @@
     - [Example](#example-2)
   - [Validation.custom(validation_options)](#validationcustomvalidation_options)
     - [Example](#example-3)
+  - [Validation.in(validation_options)](#validationinvalidation_options)
+    - [Example](#example-4)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -236,6 +238,39 @@ const createUserRule = new Rule({
     Validation.custom({
       customFunction:({value, requestObject, field, param}) => {
         return value.length > 5 ? Promise.resolve() : Promise.reject(`${field} length must be greater than 5`);
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.in(validation_options)
+
+A function that returns a validation middleware defined by the user.
+
+`validation_options (Required)`
+- `message (Required)`: A custom message.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Required params
+  - `values (Required)` : Can be string or number or any value.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  roleName:[
+    Validation.in({
+      params:{
+        values:['Admin','User']
       }
     })
   ]
