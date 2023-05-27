@@ -156,5 +156,62 @@ const getPostRule = new Rule({
 })
 ```
 
+## Validation.isArray(validation_options)
+
+A function that returns a validation middleware for checking if a field is an integer.
+
+`validation_options (Optional)`
+- `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)`: Custom error message for the validation failure.
+- `params (Optional)`
+  - `min (Optional)` : Minimum number of elements allowed in the array.
+  - `max (Optional)`: Maximum number of elements allowed in the array.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+// Without any validation options
+const getPostRule = new Rule({
+    id:[
+        Validation.integer()
+    ]
+})
+
+app.get("/post",
+    getPostRule.createValidation(),
+    getPostRule.showValidationErrors(),
+    (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+
+// With CheckIn and Message Param
+const getPostRule = new Rule({
+    id:[
+        Validation.integer({
+            checkIn:"query",
+            message:"The id field must be of type integer",
+        })
+    ]
+})
+
+// With CustomFunction
+const getPostRule = new Rule({
+    id:[
+        Validation.integer({
+            checkIn:"query",
+            customFunction: ({value, requestObject, field, param}) => {
+                return Boolean(value) 
+                    ? Promise.resolve() 
+                    : Promise.reject("With Custom Function");
+            }
+        })
+    ]
+})
+```
+
 # License 
 MIT
