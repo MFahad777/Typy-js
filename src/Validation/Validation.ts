@@ -308,30 +308,26 @@ export class Validation {
     static rangeOrBetween(validation_options: IValidationRangeorbetweenDto) : Function {
         const {
             checkIn = "any",
-            params = {
-                min : 1,
-                max : 1,
-                type : "number"
-            },
+            params: { min = 1, max = 1, type = "number" } = {},
             customFunction,
         } = validation_options;
 
         let {
-            message = `The Field :attribute Must Be Between ${params.min}${params.type === "field" ? "'value" : ''} and ${params.max}${params.type === "field" ? "'value" : ''}`,
+            message = `The Field :attribute Must Be Between ${min}${type === "field" ? "'value" : ''} and ${max}${type === "field" ? "'value" : ''}`,
         } = validation_options;
 
         const supportedTypes = ["number","date","field"];
 
-        if (!params.min || params.min === "")
+        if (!min || min === "")
             throw new Error("'between' validation first param (min value) is required")
 
-        if (!params.max || params.max === "")
+        if (!max || max === "")
             throw new Error("'between' validation second param (max value) is required")
 
-        if (typeof params.min !== typeof params.max)
+        if (typeof min !== typeof max)
             throw new Error("'between' validation params (min and max) must be of same datatype")
 
-        if (!supportedTypes.includes(params.type))
+        if (!supportedTypes.includes(type))
             throw new Error(`'between' validation third param (Optional) can only contain ${supportedTypes}`)
 
 
@@ -339,8 +335,8 @@ export class Validation {
          * To use params in the messages
          */
         message = message
-            .replace(/:min/g,String(params.min))
-            .replace(/:max/g,String(params.max))
+            .replace(/:min/g,String(min))
+            .replace(/:max/g,String(max))
 
         return (field : string) => {
 
@@ -351,7 +347,7 @@ export class Validation {
             if (customFunction) {
                 const customFunctionParams : ICustomValidationDto = {
                     customFunction,
-                    params,
+                    params: validation_options.params,
                     checkIn
                 }
                 const executeCustomFunction = Validation.custom(customFunctionParams);
@@ -368,21 +364,21 @@ export class Validation {
                             ? req.query
                             : req.params;
 
-                const isBetweenNumber = params.type === "number"
-                    ? (value > +params.min) && (value < +params.max)
+                const isBetweenNumber = type === "number"
+                    ? (value > +min) && (value < +max)
                     : false;
 
-                const isBetweenDate = params.type === "date"
-                    ? (new Date(value) > new Date(params.min)) && (new Date(value) < new Date(params.max))
+                const isBetweenDate = type === "date"
+                    ? (new Date(value) > new Date(min)) && (new Date(value) < new Date(max))
                     : false;
 
                 let isBetweenFieldValue = false;
 
-                if (params.type === "field") {
+                if (type === "field") {
                     // @ts-ignore
-                    const minValueOfTheField = get(getObject,params.min)
+                    const minValueOfTheField = get(getObject,min)
                     // @ts-ignore
-                    const maxValueOfTheField = get(getObject,params.max);
+                    const maxValueOfTheField = get(getObject,max);
 
                     //To get a boolean value
                     const isDate = !isNaN(Date.parse(minValueOfTheField)) && !isNaN(Date.parse(maxValueOfTheField));
@@ -399,9 +395,9 @@ export class Validation {
 
                 }
 
-                const toCheck = params.type === "number"
+                const toCheck = type === "number"
                     ? isBetweenNumber
-                    : params.type === "date"
+                    : type === "date"
                         ? isBetweenDate
                         : isBetweenFieldValue;
 

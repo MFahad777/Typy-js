@@ -24,6 +24,8 @@ there is separate test suite for each validation API.
     - [Example](#example-4)
   - [Validation.notIn(validation_options)](#validationnotinvalidation_options)
     - [Example](#example-5)
+  - [Validation.rangeOrBetween(validation_options)](#validationrangeorbetweenvalidation_options)
+    - [Example](#example-6)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -258,7 +260,7 @@ app.post("/post",
 
 ## Validation.in(validation_options)
 
-A function that returns a validation middleware defined by the user.
+A function that returns a validation middleware for whitelisting values.
 
 `validation_options (Required)`
 - `message (Required)`: A custom message.
@@ -291,7 +293,7 @@ app.post("/post",
 
 ## Validation.notIn(validation_options)
 
-A function that returns a validation middleware defined by the user.
+A function that returns a validation middleware for blacklisting values.
 
 `validation_options (Required)`
 - `message (Required)`: A custom message.
@@ -319,6 +321,80 @@ app.post("/post",
         createUserRule.showValidationErrors(), 
         (req,res) => {
     res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.rangeOrBetween(validation_options)
+
+A function that returns a validation middleware for defining ranges.
+
+`validation_options (Required)`
+- `message (Required)`: A custom message.
+- `customFunction (Optional)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Required params
+  - `min (Required)` : Can be string or number.
+  - `max (Required)` : Can be string or number.
+  - `type (Optional)` : Can be string or number or date.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+// With number
+const createUserRule = new Rule({
+  age:[
+    Validation.rangeOrBetween({
+      params:{
+        min:10,
+        max:20,
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+// With date
+const checkBirthDateRangeRule = new Rule({
+  birthDate:[
+    Validation.rangeOrBetween({
+      params:{
+        min: '2023-01-01',
+        max: '2023-12-31',
+        type:"date"
+      }
+    })
+  ]
+});
+
+// With another field's value
+const checkBirthDateRangeRule = new Rule({
+  birthDate:[
+    Validation.rangeOrBetween({
+      params:{
+        min: 'allowedDates.min', // uses lodash_.get to get the field value.
+        max: 'allowedDates.max', // uses lodash_.get to get the field value.
+        type:"field"
+      }
+    })
+  ],
+  allowedDates:[
+    Validation.required(),
+    Validation.isObject(), // see validation.isobject.test.js for more detail
+  ],
+  "allowedDates.min":[        // Validating nested field
+    Validation.required(),
+  ],
+  "allowedDates.max":[        // Validating nested field
+    Validation.required(),
+  ],
 });
 ```
 
