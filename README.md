@@ -396,6 +396,28 @@ const checkBirthDateRangeRule = new Rule({
     Validation.required(),
   ],
 });
+
+// -----------OR------------
+const checkBirthDateRangeRule = new Rule({
+  birthDate:[
+    Validation.rangeOrBetween({
+      params:{
+        min: 'allowedDates[0]',
+        max: 'allowedDates[1]', 
+        type:"field"
+      }
+    })
+  ],
+  allowedDates:[
+    Validation.required(),
+    Validation.isArray({
+      params:{
+          min:2,
+          max:2
+      }
+    }),
+  ],
+});
 ```
 
 # License 
