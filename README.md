@@ -22,6 +22,8 @@ there is separate test suite for each validation API.
     - [Example](#example-3)
   - [Validation.in(validation_options)](#validationinvalidation_options)
     - [Example](#example-4)
+  - [Validation.notIn(validation_options)](#validationnotinvalidation_options)
+    - [Example](#example-5)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -274,6 +276,39 @@ const createUserRule = new Rule({
     Validation.in({
       params:{
         values:['Admin','User']
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.notIn(validation_options)
+
+A function that returns a validation middleware defined by the user.
+
+`validation_options (Required)`
+- `message (Required)`: A custom message.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Required params
+  - `values (Required)` : Can be string or number or any value.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  roleName:[
+    Validation.notIn({
+      params:{
+        values:['Customer']
       }
     })
   ]
