@@ -139,7 +139,11 @@ export class Validation {
 
             const allowedDataTypes = ["number","undefined","null"]
 
-            if (!params.hasOwnProperty("min") || !params.hasOwnProperty("max")) {
+            const onlyMinOrMaxShouldExists = Object.keys(params).every(key => key === 'min' || key === 'max');
+
+            if (
+                !onlyMinOrMaxShouldExists
+            ) {
                 throw new Error(`The array validation only accepts 'min' and 'max' keys`);
             }
 
