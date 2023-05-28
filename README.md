@@ -28,6 +28,8 @@ there is separate test suite for each validation API.
     - [Example](#example-6)
   - [Validation.isObject(validation_options)](#validationisobjectvalidation_options)
     - [Example](#example-7)
+  - [Validation.if(validation_options)](#validationifvalidation_options)
+    - [Example](#example-8)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -460,6 +462,86 @@ app.post("/post",
         createUserRule.showValidationErrors(), 
         (req,res) => {
     res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.if(validation_options)
+
+A function that returns a validation middleware based on condition defined for second Field, or it's value.
+This is a complex if validation, check validation.if.test.js for more clarity.
+
+`validation_options (Required)`
+- `message (Optional)`: A custom message.
+- `customFunction (Optional)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Params
+  - `secondField (Required)` : Name of another field.
+  - `secondFieldValue (Required)` : The value of other field that should be same.
+  - `appliedOnFieldValue (Required)` : The value of the current field ( the field this validation is applied to ).
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  roleName:[
+    Validation.if({ 
+      message:"The :attribute field's value must be same as allowName field's value",
+      params:{
+        secondField:"allowName",
+        secondFieldValue:"Admin",
+        appliedOnFieldValue:"Admin"
+      }
+    })
+  ],
+  allowName:[
+    Validation.isString(),
+    Validation.in({
+      params:{
+        values:["Admin"]
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+const createUserRule = new Rule({
+  roleName:[
+    Validation.if({ // Check's if secondField exists in the payload but the current value is absent.
+      message:"The field :attribute must exists if allowName exists",
+      params:{
+        secondField:"allowName",
+        secondFieldValue:"exists",
+        appliedOnFieldValue:"exists"
+      }
+    })
+  ],
+  allowName:[
+    Validation.isString(),
+  ]
+});
+
+const createUserRule = new Rule({
+  roleName:[
+    Validation.if({
+      message:"The :attribute should not exists if allowName is present in the payload",
+      params:{
+        secondField:"allowName",
+        secondFieldValue:"exists",
+        appliedOnFieldValue:"notexists"
+      }
+    })
+  ],
+  allowName:[
+    Validation.isString(),
+  ]
 });
 ```
 
