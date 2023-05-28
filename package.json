@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MFahad777/Typy.git"
+    "url": "git+https://github.com/MFahad777/Typy-js.git"
   },
   "keywords": [
     "express",
@@ -23,9 +23,9 @@
   "author": "Muhammad Fahad",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MFahad777/Typy/issues"
+    "url": "https://github.com/MFahad777/Typy-js/issues"
   },
-  "homepage": "https://github.com/MFahad777/Typy#readme",
+  "homepage": "https://github.com/MFahad777/Typy-js#readme",
   "dependencies": {
     "express-validator": "^6.14.2",
     "lodash.flattendeep": "^4.4.0",
