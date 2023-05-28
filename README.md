@@ -32,6 +32,8 @@ there is separate test suite for each validation API.
     - [Example](#example-8)
   - [Validation.arrayNotEmpty(validation_options)](#validationarraynotemptyvalidation_options)
     - [Example](#example-9)
+  - [Validation.customSanitizer(validation_options)](#validationcustomsanitizervalidation_options)
+    - [Example](#example-10)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
