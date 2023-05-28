@@ -504,6 +504,8 @@ export class Validation {
 
             return toMatch.custom((value,{ req, location }) => {
 
+                const defaultValues = ["exists","notexists"];
+
                 const getObject =
                     location === "body"
                         ? req.body
@@ -518,65 +520,155 @@ export class Validation {
                 );
 
                 /**
-                 * If SecondFieldValue Is Set To Exists And The Actual Value Does Exist
+                 * If secondFieldValue is set to exists and appliedOnFieldValue is set to exists
                  */
-                if (params.secondFieldValue === "exists" && getFieldValue !== "exist_false") {
+                if (params.secondFieldValue === "exists" && params.appliedOnFieldValue === "exists") {
 
                     /**
-                     * If second Field Is Set To Exists and the applied Field Set To Exists
-                     * But In The Payload It's Not Present
+                     * If the actual value and the secondFieldValue does exists
                      */
-                    if (params.appliedOnFieldValue === "exists" && value == null) {
-                        return Promise.reject(message);
+                    if (value == null && getFieldValue !== "exist_false") {
+                        return Promise.reject(message)
                     }
 
-                    /**
-                     * If Field Actual Value Is Not Equal To Desired Value
-                     */
-                    if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                        return Promise.reject(message);
-                    }
                 }
 
                 /**
-                 * If SecondFieldValue Is Set To not Exists And The Actual Value Does Not Exist
+                 * If secondFieldValue is set to exists and the appliedOnFieldValue is set to notexists
                  */
-                if (params.secondFieldValue === "notexists" && getFieldValue === "exist_false") {
+                if (params.secondFieldValue === "exists" && params.appliedOnFieldValue === "notexists") {
 
                     /**
-                     * If second Field Is Set To Exists and the applied Field Set To Exists
-                     * But In The Payload It's Not Present
+                     * If the current/actual value exists and the secondField value exists
                      */
-                    if (params.appliedOnFieldValue === "notexists" && value != null) {
-                        return Promise.reject(message);
+                    if (value != null && getFieldValue !== "exist_false") {
+                        return Promise.reject(message)
                     }
 
-                    /**
-                     * If Field Actual Value Is Not Equal To Desired Value
-                     */
-                    if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                        return Promise.reject(message);
-                    }
                 }
 
                 /**
-                 * If SecondFieldValue Passed By User And Actual Request Payload Value Matches
+                 * If secondFieldValue is set to notexists and appliedOnFieldValue is set to exists
                  */
-                if (isEqual(String(params.secondFieldValue),String(getFieldValue))) {
+                if (params.secondFieldValue === "notexists" && params.appliedOnFieldValue === "exists") {
 
                     /**
-                     * If second Field Is Set To Some Value and the applied Field Set To Exists
-                     * But In The Payload It's Not Present
+                     * If the secondField value is null/or does not exists and
+                     * the actual value/appliedOnValue is null
                      */
-                    if (params.appliedOnFieldValue === "exists" && value == null) {
-                        return Promise.reject(message);
+                    if (getFieldValue === "exist_false" && value == null){
+                        return Promise.reject(message)
                     }
 
+                }
+
+                /**
+                 * If secondFieldValue is set to notexists and appliedOnFieldValue is set to notexists
+                 */
+                if (params.secondFieldValue === "notexists" && params.appliedOnFieldValue === "notexists") {
+
                     /**
-                     * If Field Actual Value Is Not Equal To Desired Value
+                     * If secondValue is null but the actual/appliedOnField Value exists
                      */
-                    if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                        return Promise.reject(message);
+                    if (getFieldValue === "exist_false" && value != null){
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is set to exists and the appliedOnFieldValue is neither set to exists nor notexists
+                 */
+                if (params.secondFieldValue === "exists" && !defaultValues.includes(params.appliedOnFieldValue)) {
+
+                    /**
+                     * If secondFieldValue is not null and the current value is not equal to appliedOnFieldValue
+                     */
+                    if (getFieldValue !== "exist_false" && value !== params.appliedOnFieldValue) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is set to notexists and the appliedOnFieldValue is neither set to exists nor notexists
+                 */
+                if (params.secondFieldValue === "notexists" && !defaultValues.includes(params.appliedOnFieldValue)) {
+
+                    /**
+                     * If secondFieldValue is null and the current value is not equal to appliedOnFieldValue
+                     */
+                    if (getFieldValue === "exist_false" && value !== params.appliedOnFieldValue) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If appliedOnFieldValue is set to exists and the secondFieldValue is neither set to exists nor notexists
+                 */
+                if (params.appliedOnFieldValue === "exists" && !defaultValues.includes(params.secondFieldValue)) {
+
+                    /**
+                     * If current value is not null and the secondFieldValue is not equal to the actual second Field Value
+                     */
+                    if (value != null && !isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue))) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If appliedOnFieldValue is set to notexists and the secondFieldValue is neither set to exists nor notexists
+                 */
+                if (params.appliedOnFieldValue === "notexists" && !defaultValues.includes(params.secondFieldValue)) {
+
+                    /**
+                     * If current value is not null and the secondFieldValue is not equal to the actual second Field Value
+                     */
+                    if (value == null && !isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue))) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue value is neither set to exists nor notexists and appliedOnFieldValue is set to exists
+                 */
+                if (!defaultValues.includes(params.secondFieldValue) && params.appliedOnFieldValue === "exists") {
+
+                    /**
+                     * If secondFieldValue is equal to the actual secondField Value
+                     * But the appliedOnValue value does not exists
+                     */
+                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value == null) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue value is neither set to exists nor notexists and appliedOnFieldValue is set to notexists
+                 */
+                if (!defaultValues.includes(params.secondFieldValue) && params.appliedOnFieldValue === "notexists") {
+
+                    /**
+                     * If secondFieldValue is equal to the actual secondField Value
+                     * But the appliedOnValue value exists
+                     */
+                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value != null) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is same as appliedOnFieldValue
+                 */
+                if (params.secondFieldValue === params.appliedOnFieldValue) {
+
+                    if (value !== getFieldValue) {
+                        return Promise.reject(message)
                     }
                 }
 
