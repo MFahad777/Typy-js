@@ -580,5 +580,36 @@ app.post("/post",
 });
 ```
 
+## Validation.customSanitizer(validation_options)
+
+A function that returns a validation middleware function defined by user.
+
+`validation_options (Required)`
+- `customFunction (Required)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  name:[
+    Validation.customSanitizer({
+      customFunction:(({ value, reqObject, field }) => {
+        return value.toLowerCase();
+      })
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
 # License 
 MIT
