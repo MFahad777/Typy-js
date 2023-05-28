@@ -30,6 +30,8 @@ there is separate test suite for each validation API.
     - [Example](#example-7)
   - [Validation.if(validation_options)](#validationifvalidation_options)
     - [Example](#example-8)
+  - [Validation.arrayNotEmpty(validation_options)](#validationarraynotemptyvalidation_options)
+    - [Example](#example-9)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -542,6 +544,39 @@ const createUserRule = new Rule({
   allowName:[
     Validation.isString(),
   ]
+});
+```
+
+## Validation.arrayNotEmpty(validation_options)
+
+A function that returns a validation middleware that checks if the array is empty or not
+
+`validation_options (Optional)`
+- `message (Optional)`: A custom message.
+- `customFunction (Optional)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  skills:[
+    Validation.arrayNotEmpty({
+      message:"The array can not be empty"
+    })
+  ],
+  "skills.*":[            // To validate every element in the array use "<field>.*"
+    Validation.isString()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
 });
 ```
 
