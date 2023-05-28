@@ -963,7 +963,7 @@ export class Validation {
     static replace(validation_options: IValidationReplaceDto) : Function {
         const {
             params = {
-                values_to_replace: "",
+                value_to_replace: "",
                 new_value: ""
             },
             checkIn = "any",
@@ -976,7 +976,7 @@ export class Validation {
             return toMatch
                 .if((value : unknown) => value !== undefined)
                 .customSanitizer((value : string) => {
-                    return value.replace(params.values_to_replace,params.new_value);
+                    return value.replace(params.value_to_replace,params.new_value);
                 })
         }
     }

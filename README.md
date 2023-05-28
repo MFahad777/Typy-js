@@ -44,6 +44,8 @@ there is separate test suite for each validation API.
     - [Example](#example-14)
   - [Validation.trim(validation_options)](#validationtrimvalidation_options)
     - [Example](#example-15)
+  - [Validation.replace(validation_options)](#validationreplacevalidation_options)
+    - [Example](#example-16)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -801,6 +803,51 @@ const createUserRule = new Rule({
     Validation.trim({
       params: {
         chars:"$$"
+      }
+    })
+  ]
+});
+```
+
+## Validation.replace(validation_options)
+
+A function that returns a validation middleware that replaces the string.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Params
+  - `new_value (Required)` : A string value
+  - `value_to_replace (Required)` : Can be a string or a regex pattern
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  name:[
+    Validation.replace({
+      params:{
+        new_value:"Hello!",
+        value_to_replace:"greetings"
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+const createUserRule = new Rule({
+  name:[
+    Validation.replace({
+      params:{
+        new_value:"Hello!",
+        value_to_replace:/greeting/ig
       }
     })
   ]

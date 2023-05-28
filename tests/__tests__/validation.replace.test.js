@@ -13,21 +13,45 @@ describe("Replace Sanitizer Validation Rule",  () => {
 
         const createUserRule = new Rule({
             name:[
-                Validation.customSanitizer({
-                    customFunction:(({ value, reqObject, field }) => {
-                        return value.toLowerCase();
-                    })
+                Validation.replace({
+                    params:{
+                        new_value:"Hello!",
+                        value_to_replace:"greetings"
+                    }
                 })
             ]
         });
 
-        setRoute("post","/custom-createUserRule",createUserRule, true);
+        setRoute("post","/replace-createUserRule",createUserRule, true);
 
         const response = await request(app)
-            .post("/custom-createUserRule")
-            .send({ name:"ALEXI" });
+            .post("/replace-createUserRule")
+            .send({ name:"greetings Alexi" });
 
         expect(response.statusCode).toEqual(200);
-        expect(response.body.name).toEqual('alexi');
+        expect(response.body.name).toEqual('Hello! Alexi');
+    })
+
+    it("verifies if it replaces the string with the provided regex",async () => {
+
+        const createUserRule = new Rule({
+            name:[
+                Validation.replace({
+                    params:{
+                        new_value:"Hello!",
+                        value_to_replace:/greeting/ig
+                    }
+                })
+            ]
+        });
+
+        setRoute("post","/replace-2-createUserRule",createUserRule, true);
+
+        const response = await request(app)
+            .post("/replace-2-createUserRule")
+            .send({ name:"greeting Alexi greeting" });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.name).toEqual('Hello! Alexi Hello!');
     })
 })
