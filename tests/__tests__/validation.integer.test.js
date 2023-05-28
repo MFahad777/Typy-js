@@ -114,8 +114,8 @@ describe("Integer Validation Rule",  () => {
 
         expect(response.statusCode).toEqual(400)
 
-        expect(response.body.errors[0].msg).toEqual('The id field must be of type integer');
-        expect(response.body.errors[0].location).toEqual('post');
+        expect(response.body.errors[0].msg).toEqual('The id must be of type integer');
+        expect(response.body.errors[0].location).toEqual('body');
         expect(response.body.errors[0].param).toEqual('id');
 
 

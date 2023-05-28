@@ -91,7 +91,7 @@ describe("RangeOrBetween Validation Rule",  () => {
             .send({ birthDate:"2024-02-01", allowedDates:{ min:"2023-01-01", max:"2023-05-05" } });
 
         expect(response.statusCode).toEqual(400);
-        expect(response.body.errors[0].msg).toEqual('The Field birthDate Must Be Between allowedDate.min\'value and allowedDate.max\'value');
+        expect(response.body.errors[0].msg).toEqual("The Field birthDate Must Be Between allowedDates.min'value and allowedDates.max'value");
         expect(response.body.errors[0].location).toEqual('body');
         expect(response.body.errors[0].param).toEqual('birthDate');
     })

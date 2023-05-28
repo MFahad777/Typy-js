@@ -115,8 +115,8 @@ export class Validation {
 
             if (params && params.strict === true) {
                 checkIfIntegerBuilder = checkIfIntegerBuilder.custom((value) => {
-                    typeof value !== "number"
-                        ? Promise.reject(`The :value must be of type integer`)
+                    return typeof value !== "number"
+                        ? Promise.reject(message)
                         : Promise.resolve()
                 });
             }
@@ -861,27 +861,27 @@ export class Validation {
 
                 /**
                  * If the secondFieldValue passed is 'exists'
-                 * and the actualValue is not undefined
+                 * and the actualValue is undefined
                  * but the field value is empty
                  */
-                if (params.secondFieldValue === "exists" && paramValue !== undefined && appliedFieldValueIsEmpty) {
+                if (params.secondFieldValue === "exists" && paramValue === undefined && appliedFieldValueIsEmpty) {
                     return Promise.reject(message);
                 }
 
                 /**
                  * If the secondFieldValue passed is 'notexists'
-                 * and the actualValue is undefined
+                 * and the actualValue not is undefined
                  * but the field value is empty
                  */
-                if (params.secondFieldValue === "notexists" && paramValue === undefined && appliedFieldValueIsEmpty) {
+                if (params.secondFieldValue === "notexists" && paramValue !== undefined && appliedFieldValueIsEmpty) {
                     return Promise.reject(message);
                 }
 
                 /**
                  * If the secondFieldValue is equal to the request payload value
-                 * but the field value is empty
+                 * and the current field value is empty
                  */
-                if (isEqual(String(paramValue),params.secondFieldValue) && appliedFieldValueIsEmpty) {
+                if (!isEqual(JSON.stringify(paramValue),JSON.stringify(params.secondFieldValue)) && appliedFieldValueIsEmpty) {
                     return Promise.reject(message);
                 }
 

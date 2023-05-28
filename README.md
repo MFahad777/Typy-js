@@ -38,6 +38,8 @@ there is separate test suite for each validation API.
     - [Example](#example-11)
   - [Validation.uppercase(validation_options)](#validationuppercasevalidation_options)
     - [Example](#example-12)
+  - [Validation.requiredIfNot(validation_options)](#validationrequiredifnotvalidation_options)
+    - [Example](#example-13)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -660,6 +662,48 @@ const createUserRule = new Rule({
     Validation.upperCase()
   ]
 });
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.requiredIfNot(validation_options)
+
+A function that returns a validation middleware to set string value as uppercase.
+
+`validation_options (Required)`
+- `message (Optional)`: A custom message.
+- `customFunction (Optional)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Params
+  - `secondField (Required)` : Name of another field.
+  - `secondFieldValue (Required)` : The value of other field.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  username:[
+    Validation.requiredIfNot({
+      message:"The :attribute is required if email is not equal to testuser@gmail.com",
+      params:{
+        secondField:"email",
+        secondFieldValue:"testuser@gmail.com"
+      }
+    }),
+  ],
+  email:[
+    Validation.required(),
+    Validation.isString()
+  ]
+});
+
 
 app.post("/post",
         createUserRule.createValidation(),
