@@ -2,11 +2,9 @@
  * Importing DTOS
  */
 import {
-    ICustomValidationDTO,
-    IIntegerValidationDTO,
-    IIsArrayValidationDTO,
-    IRequiredValidationDTO,
-    IValidationMongoidDto,
+    ICustomValidationDto,
+    IIntegerValidationDto,
+    IIsArrayValidationDto,
     IValidationInDto,
     IValidationNoinDto,
     IValidationRangeorbetweenDto,
@@ -18,107 +16,123 @@ import {
     IValidationUppercaseDto,
     IValidationRequiredIfNotDto,
     IValidationIsstringDto,
-    IValidationDistinctDto,
-    IValidationExistsDto,
     IValidationTrimDto,
     IValidationReplaceDto,
-    IValidationIsjwtDto
+    IValidationIsjwtDto,
+    IRequiredValidationDto
 } from "./dtos";
 
-/**
- * Third Party Import
- */
-import {
-    ValidationChain,
-} from "express-validator";
-
 import { get,isEqual,flattenDeep,uniqWith,map } from "lodash";
-
 
 /**
  * Local Imports
  */
-import { MongoDB } from "../Database/Mongodb/MongoDB";
 import { Util } from "../Utils/Util";
-
 
 export class Validation {
 
     /**
      * For Requiring Any Field
      *
-     * @param {IRequiredValidationDTO} validation_options
-     * @return {ValidationChain}
-     * @protected
+     * @param {IRequiredValidationDto} validation_options
+     * @return {Function}
      */
-    protected _required(validation_options : IRequiredValidationDTO) {
+    static required(validation_options : IRequiredValidationDto = {}) : Function {
+
         const {
-            field,
-            message = `The ${field} is required`,
             customFunction,
             checkIn = "any"
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        let {
+            message = `The :attribute is required`,
+        } = validation_options
 
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                checkIn
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            if (customFunction) {
+
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    checkIn
+                }
+
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
             }
-            return this._custom(customFunctionParams)
-        }
 
-        return toMatch
-            .notEmpty()
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            return toMatch
+                .notEmpty()
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * For Checking If Field Is An Integer
      *
-     * @param {IIntegerValidationDTO} validation_options
-     * @return {ValidationChain}
-     * @protected
+     * @param {IIntegerValidationDto} validation_options
+     * @return { Function }
      */
-    protected _integer(validation_options : IIntegerValidationDTO) {
+    static integer(validation_options : IIntegerValidationDto = {}) : Function {
 
         const {
-            field,
-            message = `The ${field} must be of type integer`,
             customFunction,
-            checkIn = "any"
+            checkIn = "any",
+            params,
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        let {
+            message = `The :attribute must be of type integer`,
+        } = validation_options;
 
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                checkIn
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            if (customFunction) {
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    checkIn
+                }
+
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
             }
 
-            return this._custom(customFunctionParams)
-        }
+            let checkIfIntegerBuilder = toMatch
+                .if((value : unknown) => value !== undefined)
+                .isInt(params);
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .isInt()
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            if (params && params.strict === true) {
+                checkIfIntegerBuilder = checkIfIntegerBuilder.custom((value) => {
+                    return typeof value !== "number"
+                        ? Promise.reject(message)
+                        : Promise.resolve()
+                });
+            }
+
+            return checkIfIntegerBuilder
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * For Checking If The Field Is An Array
      *
-     * @param {IIsArrayValidationDTO} validation_options
-     * @return {ValidationChain}
-     * @protected
+     * @param {IIsArrayValidationDto} validation_options
+     * @return { Function }
      */
-    protected _isArray(validation_options : IIsArrayValidationDTO) {
+    static isArray(validation_options : IIsArrayValidationDto = {}): Function {
         const {
-            field,
             customFunction,
             checkIn = "any",
             params = {
@@ -128,14 +142,18 @@ export class Validation {
         } = validation_options;
 
         let {
-            message = `The ${field} must be of type array`,
+            message = `The :attribute must be of type array`,
         } = validation_options;
 
         if (params) {
 
             const allowedDataTypes = ["number","undefined","null"]
 
-            if (!params.hasOwnProperty("min") || !params.hasOwnProperty("max")) {
+            const onlyMinOrMaxShouldExists = Object.keys(params).every(key => key === 'min' || key === 'max');
+
+            if (
+                !onlyMinOrMaxShouldExists
+            ) {
                 throw new Error(`The array validation only accepts 'min' and 'max' keys`);
             }
 
@@ -145,8 +163,6 @@ export class Validation {
 
         }
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
         /**
          * Replace with a tag
          */
@@ -154,85 +170,74 @@ export class Validation {
             .replace(/:min/g,String(params.min))
             .replace(/:max/g,String(params.max));
 
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                params,
-                checkIn
-            }
-            return this._custom(customFunctionParams)
-        }
+        return (field: string) => {
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .isArray(params)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field,message);
+
+            if (customFunction) {
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    params,
+                    checkIn
+                }
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
+            }
+
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .isArray(params)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * For Custom Validation
      *
      * @param validation_options
-     * @protected
      */
-    protected _custom(validation_options : ICustomValidationDTO) {
+    static custom(validation_options : ICustomValidationDto) : Function {
+
         const {
-            field,
             customFunction,
             checkIn = "any",
             params,
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (!customFunction)
             throw new Error(`For validation type 'custom', customFunction is required`);
 
-        return toMatch.custom((value,reqObject) => {
+        return (field : string) => {
 
-            const toSend = {
-                value,
-                reqObject,
-                field,
-                params
-            }
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-            return customFunction(toSend)
-        })
-    }
+            return toMatch.custom((value,reqObject) => {
 
-    /**
-     * To Check If The Field Is A Valid MongoDB ObjectId
-     *
-     * @param {IValidationMongoidDto} validation_options
-     * @protected
-     */
-    protected _mongoID(validation_options : IValidationMongoidDto) {
+                const toSend = {
+                    value,
+                    reqObject,
+                    field,
+                    params
+                }
 
-        const {
-            field,
-            message = `The ${field} Must Be Of Type MongoDB ObjectID`,
-            checkIn = "any"
-        } = validation_options;
+                return customFunction(toSend)
+            })
+        }
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
-        return toMatch
-            .isMongoId()
-            .if((value : unknown) => value !== undefined)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
     }
 
     /**
      * To validate the field by the given values
      *
      * @param validation_options
-     * @protected
      */
-    protected _in(validation_options : IValidationInDto) {
+    static in(validation_options : IValidationInDto) : Function {
+
         const {
-            field,
             checkIn = "any",
             params = {
                 values : []
@@ -240,34 +245,37 @@ export class Validation {
         } = validation_options;
 
         let {
-            message = `The ${field} Must Be In ${params.values}`,
+            message = `The :attribute Must Be In ${params.values}`,
         } = validation_options;
 
         if (params.values.length === 0)
             throw new Error(`The 'in' validation must have params field with values`);
-
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         /**
          * Replace with a tag
          */
         message = message.replace(/:values/g,String(params.values));
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .isIn(params.values)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .isIn(params.values)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * To validate that the field values not in the provided values
      *
      * @param validation_options
-     * @protected
      */
-    protected _notIn(validation_options : IValidationNoinDto) {
+    static notIn(validation_options : IValidationNoinDto) : Function {
         const {
-            field,
             checkIn = "any",
             params = {
                 values : []
@@ -275,13 +283,11 @@ export class Validation {
         } = validation_options;
 
         let {
-            message = `The ${field} Must Not In ${params.values}`,
+            message = `The :attribute Must Not In ${params.values}`,
         } = validation_options;
 
         if (params.values.length === 0)
             throw new Error(`The 'notIn' validation must have params field with values`);
-
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
@@ -289,118 +295,125 @@ export class Validation {
          */
         message = message.replace(/:values/g,String(params.values));
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .not()
-            .isIn(params.values)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message)
+
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .not()
+                .isIn(params.values)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+
+        }
     }
 
     /**
      * To validate that the field values is in between the given values
      *
      * @param validation_options
-     * @protected
      */
-    protected _rangeOrBetween(validation_options: IValidationRangeorbetweenDto) {
+    static rangeOrBetween(validation_options: IValidationRangeorbetweenDto) : Function {
         const {
-            field,
             checkIn = "any",
-            params = {
-                min : 1,
-                max : 1,
-                type : "number"
-            },
+            params: { min = 1, max = 1, type = "number" } = {},
             customFunction,
         } = validation_options;
 
         let {
-            message = `The Field ${field} Must Be Between ${params.min}${params.type === "field" ? "'value" : ''} and ${params.max}${params.type === "field" ? "'value" : ''}`,
+            message = `The Field :attribute Must Be Between ${min}${type === "field" ? "'value" : ''} and ${max}${type === "field" ? "'value" : ''}`,
         } = validation_options;
 
         const supportedTypes = ["number","date","field"];
 
-        if (!params.min || params.min === "")
+        if (!min || min === "")
             throw new Error("'between' validation first param (min value) is required")
 
-        if (!params.max || params.max === "")
+        if (!max || max === "")
             throw new Error("'between' validation second param (max value) is required")
 
-        if (typeof params.min !== typeof params.max)
+        if (typeof min !== typeof max)
             throw new Error("'between' validation params (min and max) must be of same datatype")
 
-        if (!supportedTypes.includes(params.type))
+        if (!supportedTypes.includes(type))
             throw new Error(`'between' validation third param (Optional) can only contain ${supportedTypes}`)
-
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
          * To use params in the messages
          */
         message = message
-            .replace(/:min/g,String(params.min))
-            .replace(/:max/g,String(params.max))
+            .replace(/:min/g,String(min))
+            .replace(/:max/g,String(max))
 
+        return (field : string) => {
 
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                params,
-                checkIn
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            if (customFunction) {
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    params: validation_options.params,
+                    checkIn
+                }
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
             }
-            return this._custom(customFunctionParams)
+
+            return toMatch.if((value : any) => value !== undefined).custom((value,{ req,location }) => {
+
+                const getObject =
+                    location === "body"
+                        ? req.body
+                        : location === "query"
+                            ? req.query
+                            : req.params;
+
+                const isBetweenNumber = type === "number"
+                    ? (value > +min) && (value < +max)
+                    : false;
+
+                const isBetweenDate = type === "date"
+                    ? (new Date(value) > new Date(min)) && (new Date(value) < new Date(max))
+                    : false;
+
+                let isBetweenFieldValue = false;
+
+                if (type === "field") {
+                    // @ts-ignore
+                    const minValueOfTheField = get(getObject,min)
+                    // @ts-ignore
+                    const maxValueOfTheField = get(getObject,max);
+
+                    //To get a boolean value
+                    const isDate = !isNaN(Date.parse(minValueOfTheField)) && !isNaN(Date.parse(maxValueOfTheField));
+
+                    /**
+                     * If isDate is true
+                     */
+                    if (isDate) {
+                        isBetweenFieldValue = (new Date(value) > new Date(minValueOfTheField)) && (new Date(value) < new Date(maxValueOfTheField))
+                    }
+                    else {
+                        isBetweenFieldValue = (value > minValueOfTheField) && (value < maxValueOfTheField)
+                    }
+
+                }
+
+                const toCheck = type === "number"
+                    ? isBetweenNumber
+                    : type === "date"
+                        ? isBetweenDate
+                        : isBetweenFieldValue;
+
+                return toCheck ? Promise.resolve : Promise.reject(message);
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
-
-        return toMatch.if((value : any) => value !== undefined).custom((value,{ req,location }) => {
-
-            const getObject =
-                location === "body"
-                    ? req.body
-                    : location === "query"
-                    ? req.query
-                    : req.params;
-
-            const isBetweenNumber = params.type === "number"
-                ? (value > +params.min) && (value < +params.max)
-                : false;
-
-            const isBetweenDate = params.type === "date"
-                ? (new Date(value) > new Date(params.min)) && (new Date(value) < new Date(params.max))
-                : false;
-
-            let isBetweenFieldValue = false;
-
-            if (params.type === "field") {
-                // @ts-ignore
-                const minValueOfTheField = get(getObject,params.min)
-                // @ts-ignore
-                const maxValueOfTheField = get(getObject,params.max);
-
-                //To get a boolean value
-                const isDate = !isNaN(Date.parse(minValueOfTheField)) && !isNaN(Date.parse(maxValueOfTheField));
-
-                /**
-                 * If isDate is true
-                 */
-                if (isDate) {
-                    isBetweenFieldValue = (new Date(value) > new Date(minValueOfTheField)) && (new Date(value) < new Date(maxValueOfTheField))
-                }
-                else {
-                    isBetweenFieldValue = (value > minValueOfTheField) && (value < maxValueOfTheField)
-                }
-
-            }
-
-            const toCheck = params.type === "number"
-                ? isBetweenNumber
-                : params.type === "date"
-                    ? isBetweenDate
-                    : isBetweenFieldValue;
-
-            return toCheck ? Promise.resolve : Promise.reject(message);
-        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
 
     }
 
@@ -408,54 +421,63 @@ export class Validation {
      * To validate that the field is a valid js object
      *
      * @param validation_options
-     * @protected
      */
-    protected _isObject(validation_options : IValidationIsobjectDto) {
+    static isObject(validation_options : IValidationIsobjectDto = {}) : Function {
+
         const {
-            field,
             checkIn = "any",
             params = {
                 strict:true
             },
             customFunction,
-            message = `The Field ${field} Must Be Of Type Object`,
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        let {
+            message = `The Field :attribute Must Be Of Type Object`,
+        } = validation_options;
 
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                params,
-                checkIn
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            if (customFunction) {
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    params,
+                    checkIn
+                }
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
             }
-            return this._custom(customFunctionParams)
-        }
 
-        return toMatch
-            .if((value : any) => value !== undefined)
-            .isObject(params)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            return toMatch
+                .if((value : any) => value !== undefined)
+                .isObject(params)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * To validate a field on a condition
      *
      * @param validation_options
-     * @protected
      */
-    protected _if(validation_options: IValidationIfDto) {
-        let {
-            field,
+    static if(validation_options: IValidationIfDto) : Function {
+        const {
             checkIn = "any",
             params = {
                 secondField : "",
                 secondFieldValue : "",
                 appliedOnFieldValue : ""
             },
-            message = `Invalid Value`,
         } = validation_options;
+
+        let {
+            message = `Invalid Value`,
+        } = validation_options
 
 
         if (params.secondField === "" || params.secondFieldValue === "" || params.appliedOnFieldValue === ""){
@@ -465,8 +487,6 @@ export class Validation {
                 " params.appliedOnFieldValue ");
         }
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
         /**
          * To use params in the messages
          */
@@ -475,211 +495,318 @@ export class Validation {
             .replace(/:secondFieldValue/g,String(params.secondFieldValue))
             .replace(/:appliedOnFieldValue/g,String(params.appliedOnFieldValue));
 
-        return toMatch.custom((value,{ req, location }) => {
+        return (field : string) => {
 
-            const getObject =
-                location === "body"
-                    ? req.body
-                    : location === "query"
-                    ? req.query
-                    : req.params;
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-            const getFieldValue = get(
-                getObject,
-                params.secondField,
-                "exist_false"
-            );
+            message = Util.replaceMessageWithField(field, message);
 
-            /**
-             * If SecondFieldValue Is Set To Exists And The Actual Value Does Exist
-             */
-            if (params.secondFieldValue === "exists" && getFieldValue !== "exist_false") {
+            return toMatch.custom((value,{ req, location }) => {
+
+                const defaultValues = ["exists","notexists"];
+
+                const getObject =
+                    location === "body"
+                        ? req.body
+                        : location === "query"
+                            ? req.query
+                            : req.params;
+
+                const getFieldValue = get(
+                    getObject,
+                    params.secondField,
+                    "exist_false"
+                );
 
                 /**
-                 * If second Field Is Set To Exists and the applied Field Set To Exists
-                 * But In The Payload It's Not Present
+                 * If secondFieldValue is set to exists and appliedOnFieldValue is set to exists
                  */
-                if (params.appliedOnFieldValue === "exists" && value == null) {
-                    return Promise.reject(message);
+                if (params.secondFieldValue === "exists" && params.appliedOnFieldValue === "exists") {
+
+                    /**
+                     * If the actual value and the secondFieldValue does exists
+                     */
+                    if (value == null && getFieldValue !== "exist_false") {
+                        return Promise.reject(message)
+                    }
+
                 }
 
                 /**
-                 * If Field Actual Value Is Not Equal To Desired Value
+                 * If secondFieldValue is set to exists and the appliedOnFieldValue is set to notexists
                  */
-                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                    return Promise.reject(message);
-                }
-            }
+                if (params.secondFieldValue === "exists" && params.appliedOnFieldValue === "notexists") {
 
-            /**
-             * If SecondFieldValue Is Set To not Exists And The Actual Value Does Not Exist
-             */
-            if (params.secondFieldValue === "notexists" && getFieldValue === "exist_false") {
+                    /**
+                     * If the current/actual value exists and the secondField value exists
+                     */
+                    if (value != null && getFieldValue !== "exist_false") {
+                        return Promise.reject(message)
+                    }
 
-                /**
-                 * If second Field Is Set To Exists and the applied Field Set To Exists
-                 * But In The Payload It's Not Present
-                 */
-                if (params.appliedOnFieldValue === "notexists" && value != null) {
-                    return Promise.reject(message);
                 }
 
                 /**
-                 * If Field Actual Value Is Not Equal To Desired Value
+                 * If secondFieldValue is set to notexists and appliedOnFieldValue is set to exists
                  */
-                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                    return Promise.reject(message);
-                }
-            }
+                if (params.secondFieldValue === "notexists" && params.appliedOnFieldValue === "exists") {
 
-            /**
-             * If SecondFieldValue Passed By User And Actual Request Payload Value Matches
-             */
-            if (isEqual(String(params.secondFieldValue),String(getFieldValue))) {
+                    /**
+                     * If the secondField value is null/or does not exists and
+                     * the actual value/appliedOnValue is null
+                     */
+                    if (getFieldValue === "exist_false" && value == null){
+                        return Promise.reject(message)
+                    }
 
-                /**
-                 * If second Field Is Set To Some Value and the applied Field Set To Exists
-                 * But In The Payload It's Not Present
-                 */
-                if (params.appliedOnFieldValue === "exists" && value == null) {
-                    return Promise.reject(message);
                 }
 
                 /**
-                 * If Field Actual Value Is Not Equal To Desired Value
+                 * If secondFieldValue is set to notexists and appliedOnFieldValue is set to notexists
                  */
-                if (!isEqual(String(value),String(params.appliedOnFieldValue))) {
-                    return Promise.reject(message);
-                }
-            }
+                if (params.secondFieldValue === "notexists" && params.appliedOnFieldValue === "notexists") {
 
-            /**
-             * Pass the validation
-             */
-            return Promise.resolve();
-        })
+                    /**
+                     * If secondValue is null but the actual/appliedOnField Value exists
+                     */
+                    if (getFieldValue === "exist_false" && value != null){
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is set to exists and the appliedOnFieldValue is neither set to exists nor notexists
+                 */
+                if (params.secondFieldValue === "exists" && !defaultValues.includes(params.appliedOnFieldValue)) {
+
+                    /**
+                     * If secondFieldValue is not null and the current value is not equal to appliedOnFieldValue
+                     */
+                    if (getFieldValue !== "exist_false" && value !== params.appliedOnFieldValue) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is set to notexists and the appliedOnFieldValue is neither set to exists nor notexists
+                 */
+                if (params.secondFieldValue === "notexists" && !defaultValues.includes(params.appliedOnFieldValue)) {
+
+                    /**
+                     * If secondFieldValue is null and the current value is not equal to appliedOnFieldValue
+                     */
+                    if (getFieldValue === "exist_false" && value !== params.appliedOnFieldValue) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If appliedOnFieldValue is set to exists and the secondFieldValue is neither set to exists nor notexists
+                 */
+                if (params.appliedOnFieldValue === "exists" && !defaultValues.includes(params.secondFieldValue)) {
+
+                    /**
+                     * If current value is not null and the secondFieldValue is not equal to the actual second Field Value
+                     */
+                    if (value != null && !isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue))) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If appliedOnFieldValue is set to notexists and the secondFieldValue is neither set to exists nor notexists
+                 */
+                if (params.appliedOnFieldValue === "notexists" && !defaultValues.includes(params.secondFieldValue)) {
+
+                    /**
+                     * If current value is not null and the secondFieldValue is not equal to the actual second Field Value
+                     */
+                    if (value == null && !isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue))) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue value is neither set to exists nor notexists and appliedOnFieldValue is set to exists
+                 */
+                if (!defaultValues.includes(params.secondFieldValue) && params.appliedOnFieldValue === "exists") {
+
+                    /**
+                     * If secondFieldValue is equal to the actual secondField Value
+                     * But the appliedOnValue value does not exists
+                     */
+                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value == null) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue value is neither set to exists nor notexists and appliedOnFieldValue is set to notexists
+                 */
+                if (!defaultValues.includes(params.secondFieldValue) && params.appliedOnFieldValue === "notexists") {
+
+                    /**
+                     * If secondFieldValue is equal to the actual secondField Value
+                     * But the appliedOnValue value exists
+                     */
+                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value != null) {
+                        return Promise.reject(message)
+                    }
+
+                }
+
+                /**
+                 * If secondFieldValue is same as appliedOnFieldValue
+                 */
+                if (params.secondFieldValue === params.appliedOnFieldValue) {
+
+                    if (value !== getFieldValue) {
+                        return Promise.reject(message)
+                    }
+                }
+
+                /**
+                 * Pass the validation
+                 */
+                return Promise.resolve();
+            })
+        }
     }
 
     /**
      * To validate that the field does not contain an empty array
      *
      * @param validation_options
-     * @protected
      */
-    protected _arrayNotEmpty(validation_options: IValidationArraynotemptyDto) {
+    static arrayNotEmpty(validation_options: IValidationArraynotemptyDto = {}) : Function {
         const {
-            field,
             checkIn = "any",
-            message = `The ${field} must not be empty array`,
             customFunction
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        let {
+            message = `The :attribute must not be empty array`,
+        } = validation_options
 
-        if (customFunction) {
 
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                checkIn
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            if (customFunction) {
+
+                const customFunctionParams : ICustomValidationDto = {
+                    customFunction,
+                    checkIn
+                }
+
+                const executeCustomFunction = Validation.custom(customFunctionParams);
+
+                return executeCustomFunction(field)
             }
 
-            return this._custom(customFunctionParams)
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .custom((value) => {
+                    return value.length > 0
+                        ? Promise.resolve()
+                        : Promise.reject(message);
+                }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
-
-
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .custom((value) => {
-                return value.length > 0
-                    ? Promise.resolve()
-                    : Promise.reject(message);
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
-
     }
 
     /**
      * For Custom Sanitizer
      *
      * @param validation_options
-     * @protected
      */
-    protected _customSanitizer(validation_options : IValidationCustomSanitizerDto) {
+    static customSanitizer(validation_options : IValidationCustomSanitizerDto) : Function {
         const {
-            field,
             customFunction,
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
         if (!customFunction)
             throw new Error(`For validation type 'customSanitizer', customFunction is required`);
 
-        return toMatch.customSanitizer((value,reqObject) => {
+        return (field : string) => {
 
-            const toSend = {
-                value,
-                reqObject,
-                field
-            }
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-            return customFunction(toSend)
-        })
+            return toMatch.customSanitizer((value,reqObject) => {
+
+                const toSend = {
+                    value,
+                    reqObject,
+                    field
+                }
+
+                return customFunction(toSend)
+            })
+        }
     }
 
     /**
      * To convert the field's value into lowercase
      *
      * @param validation_options
-     * @protected
      * @sanitizer
      */
-    protected _lowerCase(validation_options: IValidationLowercaseDto) {
+    static lowerCase(validation_options: IValidationLowercaseDto = {}) : Function {
         const {
-            field,
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        return (field : string) => {
 
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .toLowerCase()
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .toLowerCase()
+        }
     }
 
     /**
      * To convert the field's value into lowercase
      *
      * @param validation_options
-     * @protected
      * @sanitizer
      */
-    protected _upperCase(validation_options: IValidationUppercaseDto) {
+    static upperCase(validation_options: IValidationUppercaseDto = {}) : Function {
         const {
-            field,
             checkIn = "any",
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+        return (field : string) => {
 
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .toUpperCase()
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .toUpperCase()
+
+        }
+
     }
 
     /**
      * To validate that field is required if the other field value not exists/have some certain value.
      *
      * @param validation_options
-     * @protected
      */
-    protected _requiredIfNot(validation_options: IValidationRequiredIfNotDto) {
+    static requiredIfNot(validation_options: IValidationRequiredIfNotDto) : Function {
 
         const {
-            field,
             checkIn = "any",
             params = {
                 secondField:"",
@@ -701,8 +828,6 @@ export class Validation {
                 "'required_if_not' Validation Expect 'secondFieldValue' not empty"
             );
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
         /**
          * To use params in the messages
          */
@@ -710,62 +835,68 @@ export class Validation {
             .replace(/:secondField/g,String(params.secondField))
             .replace(/:secondFieldValue/g,String(params.secondFieldValue))
 
-        return toMatch.custom((value, { req, location }) => {
-            const getObject =
-                location === "body"
-                    ? req.body
-                    : location === "query"
-                    ? req.query
-                    : req.params;
 
-            const appliedFieldValueIsEmpty = value === undefined || value === null || value === "" || value?.length === 0;
+        return (field : string) => {
 
-            const paramValue = get(
-                getObject,
-                params.secondField,
-                undefined
-            );
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-            /**
-             * If the secondFieldValue passed is 'exists'
-             * and the actualValue is not undefined
-             * but the field value is empty
-             */
-            if (params.secondFieldValue === "exists" && paramValue !== undefined && appliedFieldValueIsEmpty) {
-                return Promise.reject(message);
-            }
+            message = Util.replaceMessageWithField(field, message)
 
-            /**
-             * If the secondFieldValue passed is 'notexists'
-             * and the actualValue is undefined
-             * but the field value is empty
-             */
-            if (params.secondFieldValue === "notexists" && paramValue === undefined && appliedFieldValueIsEmpty) {
-                return Promise.reject(message);
-            }
+            return toMatch.custom((value, { req, location }) => {
+                const getObject =
+                    location === "body"
+                        ? req.body
+                        : location === "query"
+                            ? req.query
+                            : req.params;
 
-            /**
-             * If the secondFieldValue is equal to the request payload value
-             * but the field value is empty
-             */
-            if (isEqual(String(paramValue),params.secondFieldValue) && appliedFieldValueIsEmpty) {
-                return Promise.reject(message);
-            }
+                const appliedFieldValueIsEmpty = value === undefined || value === null || value === "" || value?.length === 0;
 
-            return Promise.resolve();
-        })
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                const paramValue = get(
+                    getObject,
+                    params.secondField,
+                    undefined
+                );
+
+                /**
+                 * If the secondFieldValue passed is 'exists'
+                 * and the actualValue is undefined
+                 * but the field value is empty
+                 */
+                if (params.secondFieldValue === "exists" && paramValue === undefined && appliedFieldValueIsEmpty) {
+                    return Promise.reject(message);
+                }
+
+                /**
+                 * If the secondFieldValue passed is 'notexists'
+                 * and the actualValue not is undefined
+                 * but the field value is empty
+                 */
+                if (params.secondFieldValue === "notexists" && paramValue !== undefined && appliedFieldValueIsEmpty) {
+                    return Promise.reject(message);
+                }
+
+                /**
+                 * If the secondFieldValue is equal to the request payload value
+                 * and the current field value is empty
+                 */
+                if (!isEqual(JSON.stringify(paramValue),JSON.stringify(params.secondFieldValue)) && appliedFieldValueIsEmpty) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+            })
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 
     /**
      * To validate that the field is of type string.
      *
      * @param {IValidationIsstringDto} validation_options
-     * @protected
      */
-    protected _isString(validation_options: IValidationIsstringDto) {
+    static isString(validation_options: IValidationIsstringDto = {}) : Function {
         const {
-            field,
             checkIn = "any",
             params = {
                 min:undefined,
@@ -774,10 +905,8 @@ export class Validation {
         } = validation_options;
 
         let {
-            message
+            message = `The field :attribute is not of type string`
         } = validation_options;
-
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
 
         /**
@@ -787,278 +916,79 @@ export class Validation {
         message = message.replace(/(:max)/ig,`${params.max}`);
 
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .isString()
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
-            .isLength(params)
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
-    }
+        return (field : string) => {
 
-    /**
-     * To validate that the field has distinct values
-     *
-     * @param validation_options
-     * @protected
-     */
-    protected _distinct(validation_options: IValidationDistinctDto) {
-        const {
-            field,
-            checkIn = "any",
-            params = {
-                fieldToCheckWith:"",
-                uniqueCheckType:"unique_in"
-            }
-        } = validation_options;
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        let {
-            message = "Invalid Value"
-        } = validation_options;
+            message = Util.replaceMessageWithField(field, message);
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
-
-        if (
-            params.uniqueCheckType !== "unique_out" &&
-            params.uniqueCheckType !== "unique_in" &&
-            params.uniqueCheckType !== "unique_in_out"
-        )
-            throw new Error(
-                "UniqueCheckType (Second Argument) Values Can Only Be `unique_out (By Default), unique_in, unique_in_out`"
-            );
-
-        /**
-         * Replacing the params value by a tag
-         */
-        message = message.replace(/(:fieldToCheckWith)/ig,`${params.fieldToCheckWith}`);
-        message = message.replace(/(:uniqueCheckType)/ig,`${params.uniqueCheckType}`);
-
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .custom((value) => {
-                if (!Array.isArray(value))
-                    throw new Error("Validation Only Accept Arrays Values");
-
-                if (value.length === 0)
-                    throw new Error("Array Can't Be Empty")
-
-
-                //For Deep Level Checking
-                const pluckedValues = map(value, params.fieldToCheckWith);
-
-                if (params.uniqueCheckType === "unique_in") {
-                    const isUniqueInside = pluckedValues.every(
-                        (pluckedValue) => {
-                            const uniqueSet = new Set(pluckedValue);
-
-                            return uniqueSet.size === pluckedValue.length;
-                        }
-                    );
-
-                    return isUniqueInside
-                        ? Promise.resolve
-                        : Promise.reject(message);
-                }
-
-                if (params.uniqueCheckType === "unique_in_out") {
-                    const flattenArray = flattenDeep(pluckedValues);
-
-                    const isUniqueOutSide =
-                        new Set(flattenArray).size === flattenArray.length;
-
-                    return isUniqueOutSide
-                        ? Promise.resolve
-                        : Promise.reject(message);
-                }
-
-                if (Array.isArray(pluckedValues[0])) {
-                    const uniqueArrays = uniqWith(pluckedValues, isEqual);
-
-                    return uniqueArrays.length === pluckedValues.length
-                        ? Promise.resolve()
-                        : Promise.reject(message);
-                }
-
-                const isUniqueData =
-                    new Set(pluckedValues).size === pluckedValues.length;
-
-
-                return !isUniqueData
-                    ? Promise.reject(message)
-                    : Promise.resolve;
-            })
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
-    }
-
-    /**
-     * To check if the field value exists in the database
-     *
-     * @param validation_options
-     * @protected
-     *
-     * Supported Database are [MongoDB (With or Without Mongoose)]
-     */
-    protected _exists(validation_options: IValidationExistsDto) {
-
-        const {
-            field,
-            checkIn = "any",
-            customFunction,
-            params = {
-                database:"mongodb",
-                mongodbOptions : {
-                  databaseConnection: "",
-                  isFieldValueObjectId:false,
-                  databaseName:"",
-                  collection:"",
-                  query:""
-                },
-                mongoose:{
-                  model:"",
-                  query:""
-                },
-            }
-        } = validation_options;
-
-        let {
-            message = `The ${field} value does not exist in the db`
-        } = validation_options;
-
-        const supportedDatabasesDriver = ["mongodb","mongoose"];
-
-        if (!supportedDatabasesDriver.includes(params.database))
-            throw new Error(`Currently 'exists' validation only accepts 'mongodb' or 'mongoose'`);
-
-        /**
-         * If using mongodb
-         */
-        if (params.database === "mongodb") {
-
-            const allValues = Object.values(
-                Util.omitNNumberOfField(params.mongodbOptions,["isFieldValueObjectId"])
-            );
-
-            if (Util.checkFalsyValues(allValues)) {
-                throw new Error(`'exists' validation. If database is mongodb then 'params.mongodbOptions object values can't be empty`)
-            }
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .isString()
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
+                .isLength(params)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
-
-        /**
-         * If using mongoose
-         */
-        if (params.database === "mongoose") {
-
-            const allValues = Object.values(params.mongoose);
-
-            if (Util.checkFalsyValues(allValues)) {
-                throw new Error(`'exists' validation. If database is mongoose then 'params.mongoose object values can't be empty`)
-            }
-        }
-
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
-
-        // @ts-ignore
-        const mongodbInstance = new MongoDB(params.database, {
-            ...params.database === "mongodb"
-                ? params.mongodbOptions
-                : params.mongoose
-        })
-
-
-        /**
-         * If using a custom function
-         */
-        if (customFunction) {
-            const customFunctionParams : ICustomValidationDTO = {
-                field,
-                customFunction,
-                checkIn,
-                params
-            }
-
-            return this._custom(customFunctionParams)
-        }
-
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .custom(async (value) => {
-
-            const queryOf = params.database === "mongoose"
-                ? params.mongoose.query
-                : params.mongodbOptions.query;
-
-            const document = await mongodbInstance.findQuery(queryOf,value,params?.mongodbOptions?.isFieldValueObjectId,params?.mongoose?.model);
-
-            if (!document) {
-                return Promise.reject(message);
-            }
-
-            return Promise.resolve();
-        }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));;
-
     }
 
     /**
      * To trim string
      *
      * @param validation_options
-     * @protected
      * @sanitizer
      */
-    protected _trim(validation_options: IValidationTrimDto) {
+    static trim(validation_options: IValidationTrimDto) : Function {
         const {
-            field,
             params = {
                 chars:""
             },
             checkIn = "any",
         } = validation_options;
 
+        return (field : string) => {
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .trim(params.chars);
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .trim(params.chars);
+        }
     }
 
     /**
      * To replace field value
      *
      * @param validation_options
-     * @protected
      */
-    protected _replace(validation_options: IValidationReplaceDto) {
+    static replace(validation_options: IValidationReplaceDto) : Function {
         const {
-            field,
             params = {
-                values_to_replace: "",
+                value_to_replace: "",
                 new_value: ""
             },
             checkIn = "any",
         } = validation_options;
 
+        return (field : string) => {
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        return toMatch
-            .if((value : unknown) => value !== undefined)
-            .customSanitizer((value : string) => {
-                return value.replace(params.values_to_replace,params.new_value);
-            })
+            return toMatch
+                .if((value : unknown) => value !== undefined)
+                .customSanitizer((value : string) => {
+                    return value.replace(params.value_to_replace,params.new_value);
+                })
+        }
     }
 
     /**
      * To validate if the field's value is a valid jwt token
      *
      * @param validation_options
-     * @private
      */
-    protected _isjwt(validation_options: IValidationIsjwtDto) {
+    static isJwt(validation_options: IValidationIsjwtDto = {}) : Function {
 
         const {
-            field,
             checkIn = "any",
         } = validation_options;
 
@@ -1066,10 +996,16 @@ export class Validation {
             message = "Invalid JWT Token"
         } = validation_options;
 
-        const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
 
-        return toMatch
-            .isJWT()
-            .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isJWT()
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
     }
 }
