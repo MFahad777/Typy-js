@@ -42,6 +42,8 @@ there is separate test suite for each validation API.
     - [Example](#example-13)
   - [Validation.isString(validation_options)](#validationisstringvalidation_options)
     - [Example](#example-14)
+  - [Validation.trim(validation_options)](#validationtrimvalidation_options)
+    - [Example](#example-15)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -756,6 +758,49 @@ const createUserRule = new Rule({
       params:{
         min:5,
         max:10
+      }
+    })
+  ]
+});
+```
+
+## Validation.trim(validation_options)
+
+A function that returns a validation middleware that trims the string.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Required)`: Params
+  - `chars (Required)` : Pattern to match. ( eg : " ", "@" )
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  name:[
+    Validation.trim({
+      params: {
+        chars:" "
+      }
+    })
+  ]
+});
+
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+const createUserRule = new Rule({
+  name:[
+    Validation.trim({
+      params: {
+        chars:"$$"
       }
     })
   ]
