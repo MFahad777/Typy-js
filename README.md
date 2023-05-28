@@ -48,6 +48,7 @@ there is separate test suite for each validation API.
     - [Example](#example-16)
   - [Validation.isJwt(validation_options)](#validationisjwtvalidation_options)
     - [Example](#example-17)
+- [Other](#other)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -886,5 +887,10 @@ app.post("/post",
 });
 ```
 
-# License 
+# Other
+Some other features that comes with this package are following.
+- Custom Validation Error Response: `see validation.other.test.js`
+
+
+# License
 MIT
