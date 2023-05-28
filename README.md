@@ -420,5 +420,43 @@ const checkBirthDateRangeRule = new Rule({
 });
 ```
 
+## Validation.isObject(validation_options)
+
+A function that returns a validation middleware for checking if the passed value is an Object.
+
+`validation_options (Required)`
+- `message (Required)`: A custom message.
+- `customFunction (Optional)`: A custom function, which can be defined by user.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Optional)`: Params
+  - `strict (Optional)` : Set to true if wanna strict type type
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  user_data:[
+    Validation.isObject() // Since this uses express-validator under the hood for detail please vist `https://express-validator.github.io/docs/api/validation-chain/#isobject`
+  ],
+  "user_data.id":[
+    Validation.required(),
+    Validation.integer()
+  ],
+  "user_data.name":[
+    Validation.required(),
+    Validation.isString() // check validation.isstring.test.js
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
 # License 
 MIT

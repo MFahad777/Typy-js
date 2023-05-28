@@ -17,7 +17,7 @@ describe("Is Object Validation Rule",  () => {
             ],
             "user_data.id":[
                 Validation.required(),
-                Validation.integer({})
+                Validation.integer()
             ],
             "user_data.name":[
                 Validation.required(),
@@ -30,19 +30,14 @@ describe("Is Object Validation Rule",  () => {
         const response = await request(app)
             .post("/isobject-user-rule")
             .send({
-                    user_data: {
-                        id:"2",
-                        name:"My Name"
-                    }
+                    user_data: []
                 })
             .set("Accept","application/json")
 
-        console.log(response.body)
-
         expect(response.statusCode).toEqual(400);
-        // expect(response.body.errors[0].msg).toEqual('The hobbies must be of type array');
-        // expect(response.body.errors[0].location).toEqual('body');
-        // expect(response.body.errors[0].param).toEqual('hobbies');
+        expect(response.body.errors[0].msg).toEqual('The Field user_data Must Be Of Type Object');
+        expect(response.body.errors[0].location).toEqual('body');
+        expect(response.body.errors[0].param).toEqual('user_data');
     });
 
 })
