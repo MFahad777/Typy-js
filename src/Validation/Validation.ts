@@ -83,7 +83,8 @@ export class Validation {
 
         const {
             customFunction,
-            checkIn = "any"
+            checkIn = "any",
+            params,
         } = validation_options;
 
         let {
@@ -108,9 +109,19 @@ export class Validation {
                 return executeCustomFunction(field)
             }
 
-            return toMatch
+            let checkIfIntegerBuilder = toMatch
                 .if((value : unknown) => value !== undefined)
-                .isInt()
+                .isInt(params);
+
+            if (params && params.strict === true) {
+                checkIfIntegerBuilder = checkIfIntegerBuilder.custom((value) => {
+                    typeof value !== "number"
+                        ? Promise.reject(`The :value must be of type integer`)
+                        : Promise.resolve()
+                });
+            }
+
+            return checkIfIntegerBuilder
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }

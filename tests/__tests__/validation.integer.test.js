@@ -93,4 +93,31 @@ describe("Integer Validation Rule",  () => {
         expect(response.body.errors[1].param).toEqual('userId');
 
     })
+
+    it("Strict checking integer validation", async () => {
+
+        const postRule = new Rule({
+            id:[
+                Validation.integer({
+                    params:{
+                        strict:true
+                    }
+                })
+            ]
+        })
+
+        setRoute("post","/strictChecking-integer",postRule);
+
+        const response = await request(app)
+            .post("/strictChecking-integer")
+            .send({ id:"1" });
+
+        expect(response.statusCode).toEqual(400)
+
+        expect(response.body.errors[0].msg).toEqual('The id field must be of type integer');
+        expect(response.body.errors[0].location).toEqual('post');
+        expect(response.body.errors[0].param).toEqual('id');
+
+
+    })
 })
