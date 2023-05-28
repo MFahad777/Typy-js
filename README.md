@@ -26,6 +26,8 @@ there is separate test suite for each validation API.
     - [Example](#example-5)
   - [Validation.rangeOrBetween(validation_options)](#validationrangeorbetweenvalidation_options)
     - [Example](#example-6)
+  - [Validation.isObject(validation_options)](#validationisobjectvalidation_options)
+    - [Example](#example-7)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -123,6 +125,9 @@ A function that returns a validation middleware for checking if a field is an in
 - `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)`: Custom error message for the validation failure.
+- `params (Optional)`: Params.
+  - `strict (Optional)` : Set to true if want strict type check.
+  - `allow_leading_zeros (Optional)` : Set to true if want to allow zeros at the starting of number.
 
 ### Example
 
