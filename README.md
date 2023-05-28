@@ -46,6 +46,8 @@ there is separate test suite for each validation API.
     - [Example](#example-15)
   - [Validation.replace(validation_options)](#validationreplacevalidation_options)
     - [Example](#example-16)
+  - [Validation.isJwt(validation_options)](#validationisjwtvalidation_options)
+    - [Example](#example-17)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -851,6 +853,36 @@ const createUserRule = new Rule({
       }
     })
   ]
+});
+```
+
+## Validation.isJwt(validation_options)
+
+A function that returns a validation middleware that checks if the string is a valid JWT Token.
+It only matches the pattern, to verify the jwt token please use packages like bcrypt-js.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createPostRule = new Rule({
+  jwt_token:[
+    Validation.isJwt({
+      message:"The :attribute's value is not a valid jwt token"
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
 });
 ```
 

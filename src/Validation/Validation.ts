@@ -986,7 +986,7 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isjwt(validation_options: IValidationIsjwtDto = {}) : Function {
+    static isJwt(validation_options: IValidationIsjwtDto = {}) : Function {
 
         const {
             checkIn = "any",
