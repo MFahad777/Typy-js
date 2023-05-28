@@ -40,6 +40,8 @@ there is separate test suite for each validation API.
     - [Example](#example-12)
   - [Validation.requiredIfNot(validation_options)](#validationrequiredifnotvalidation_options)
     - [Example](#example-13)
+  - [Validation.isString(validation_options)](#validationisstringvalidation_options)
+    - [Example](#example-14)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -710,6 +712,53 @@ app.post("/post",
         createUserRule.showValidationErrors(), 
         (req,res) => {
     res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isString(validation_options)
+
+A function that returns a validation middleware to check if the current field's value is type of string.
+
+`validation_options (Optional)`
+- `message (Optional)`: A custom message.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `params (Optional)`: Params
+  - `min (Optional)` : Minimum number of characters.
+  - `max (Optional)` : Maximum number of characters.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+// Without any params
+const createUserRule = new Rule({
+  name:[
+    Validation.isString({
+      message:"The :attribute must be of type string"
+    })
+  ]
+});
+
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+
+// With min and max params
+const createUserRule = new Rule({
+  name:[
+    Validation.isString({
+      message:"The :attribute must be of type string and must have :min and :max string length",
+      params:{
+        min:5,
+        max:10
+      }
+    })
+  ]
 });
 ```
 

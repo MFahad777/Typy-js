@@ -16,7 +16,6 @@ import {
     IValidationUppercaseDto,
     IValidationRequiredIfNotDto,
     IValidationIsstringDto,
-    IValidationDistinctDto,
     IValidationTrimDto,
     IValidationReplaceDto,
     IValidationIsjwtDto,
@@ -928,103 +927,6 @@ export class Validation {
                 .isString()
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
                 .isLength(params)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
-        }
-    }
-
-    /**
-     * To validate that the field has distinct values
-     *
-     * @param validation_options
-     */
-    static distinct(validation_options: IValidationDistinctDto) : Function {
-        const {
-            checkIn = "any",
-            params = {
-                fieldToCheckWith:"",
-                uniqueCheckType:"unique_in"
-            }
-        } = validation_options;
-
-        let {
-            message = "Invalid Value"
-        } = validation_options;
-
-        if (
-            params.uniqueCheckType !== "unique_out" &&
-            params.uniqueCheckType !== "unique_in" &&
-            params.uniqueCheckType !== "unique_in_out"
-        )
-            throw new Error(
-                "UniqueCheckType (Second Argument) Values Can Only Be `unique_out (By Default), unique_in, unique_in_out`"
-            );
-
-        /**
-         * Replacing the params value by a tag
-         */
-        message = message.replace(/(:fieldToCheckWith)/ig,`${params.fieldToCheckWith}`);
-        message = message.replace(/(:uniqueCheckType)/ig,`${params.uniqueCheckType}`);
-
-        return (field : string) => {
-
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
-
-            message = Util.replaceMessageWithField(field, message);
-
-            return toMatch
-                .if((value : unknown) => value !== undefined)
-                .custom((value) => {
-                    if (!Array.isArray(value))
-                        throw new Error("Validation Only Accept Arrays Values");
-
-                    if (value.length === 0)
-                        throw new Error("Array Can't Be Empty")
-
-
-                    //For Deep Level Checking
-                    const pluckedValues = map(value, params.fieldToCheckWith);
-
-                    if (params.uniqueCheckType === "unique_in") {
-                        const isUniqueInside = pluckedValues.every(
-                            (pluckedValue) => {
-                                const uniqueSet = new Set(pluckedValue);
-
-                                return uniqueSet.size === pluckedValue.length;
-                            }
-                        );
-
-                        return isUniqueInside
-                            ? Promise.resolve
-                            : Promise.reject(message);
-                    }
-
-                    if (params.uniqueCheckType === "unique_in_out") {
-                        const flattenArray = flattenDeep(pluckedValues);
-
-                        const isUniqueOutSide =
-                            new Set(flattenArray).size === flattenArray.length;
-
-                        return isUniqueOutSide
-                            ? Promise.resolve
-                            : Promise.reject(message);
-                    }
-
-                    if (Array.isArray(pluckedValues[0])) {
-                        const uniqueArrays = uniqWith(pluckedValues, isEqual);
-
-                        return uniqueArrays.length === pluckedValues.length
-                            ? Promise.resolve()
-                            : Promise.reject(message);
-                    }
-
-                    const isUniqueData =
-                        new Set(pluckedValues).size === pluckedValues.length;
-
-
-                    return !isUniqueData
-                        ? Promise.reject(message)
-                        : Promise.resolve;
-                })
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }
