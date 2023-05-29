@@ -197,7 +197,7 @@ const getPostRule = new Rule({
 
 ## Validation.isArray(validation_options)
 
-A function that returns a validation middleware for checking if a field is an integer.
+A function that returns a validation middleware for checking if a field is an array.
 
 `validation_options (Optional)`
 - `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
@@ -599,7 +599,7 @@ app.post("/post",
 
 ## Validation.customSanitizer(validation_options)
 
-A function that returns a validation middleware function defined by user.
+A function that returns a sanitizer middleware function defined by user.
 
 `validation_options (Required)`
 - `customFunction (Required)`: A custom function, which can be defined by user.
@@ -630,7 +630,7 @@ app.post("/post",
 
 ## Validation.lowercase(validation_options)
 
-A function that returns a validation middleware to set string value as lowercase.
+A function that returns a sanitizer middleware to set string value as lowercase.
 
 `validation_options (Optional)`
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
@@ -656,7 +656,7 @@ app.post("/post",
 
 ## Validation.uppercase(validation_options)
 
-A function that returns a validation middleware to set string value as uppercase.
+A function that returns a sanitizer middleware to set string value as uppercase.
 
 `validation_options (Optional)`
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
@@ -682,7 +682,7 @@ app.post("/post",
 
 ## Validation.requiredIfNot(validation_options)
 
-A function that returns a validation middleware to set string value as uppercase.
+A function that returns a validation middleware that makes a field required if the condition does not meet.
 
 `validation_options (Required)`
 - `message (Optional)`: A custom message.
@@ -872,8 +872,9 @@ It only matches the pattern, to verify the jwt token please use packages like bc
 const { Rule, Validation } = require("typy-js");
 
 const createPostRule = new Rule({
-  jwt_token:[
+  authorization:[
     Validation.isJwt({
+      checkIn:"header",
       message:"The :attribute's value is not a valid jwt token"
     })
   ]

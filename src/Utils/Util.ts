@@ -12,6 +12,10 @@ import {
     ValidationChain,
 } from "express-validator";
 
+type AllAvailableLocations = "params" | "body" | "query" | "header" | "any";
+
+type TPayloadLocation = { [K in AllAvailableLocations] : ValidationChain }
+
 export class Util {
 
     /**
@@ -50,9 +54,9 @@ export class Util {
      * @param checkIn
      * @param field
      */
-    static returnBasedOnCheckIn(checkIn:string,field:string) : ValidationChain {
+    static returnBasedOnCheckIn(checkIn: keyof TPayloadLocation,field:string) : ValidationChain {
 
-        const allRequestPayloadLocation : any = {
+        const allRequestPayloadLocation : TPayloadLocation = {
             params:param(field),
             query:query(field),
             header:header(field),

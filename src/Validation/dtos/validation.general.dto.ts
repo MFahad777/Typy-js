@@ -4,5 +4,5 @@ export interface ValidationGeneralDto {
         [key : string] : any
     },
     customFunction? : Function | null | undefined,
-    checkIn?: 'params' | 'body' | 'query' | 'any'
+    checkIn?: 'params' | 'body' | 'query' | 'header' | 'any'
 }

@@ -13,8 +13,9 @@ describe("IsJWT Validation Rule",  () => {
     it("Check if the provided value is a valid jwt",async () => {
 
         const createPostRule = new Rule({
-            jwt_token:[
+            authorization:[
                 Validation.isJwt({
+                    checkIn:"header",
                     message:"The :attribute's value is not a valid jwt token"
                 })
             ]
@@ -24,11 +25,12 @@ describe("IsJWT Validation Rule",  () => {
 
         const response = await request(app)
             .post("/isjwt-createUserRule")
-            .send({ jwt_token:"a_jwt_token" });
+            .set({ authorization:"a_jwt_token" })
+            .send({});
 
         expect(response.statusCode).toEqual(400);
-        expect(response.body.errors[0].msg).toEqual("The jwt_token's value is not a valid jwt token");
-        expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('jwt_token');
+        expect(response.body.errors[0].msg).toEqual("The authorization's value is not a valid jwt token");
+        expect(response.body.errors[0].location).toEqual('headers');
+        expect(response.body.errors[0].param).toEqual('authorization');
     })
 })
