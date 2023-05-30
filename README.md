@@ -1018,24 +1018,17 @@ A function that returns a validation middleware that checks the field that must 
 const { Rule, Validation } = require("typy-js");
 
 const createUserRule = new Rule({
-  password:[
-    Validation.same({
-      params:{
-        otherField: "confirmPassword"
-      }
-    }),
-    Validation.same({
-      message:"The :attribute's value must not be same as temporaryPassword's value",
-      params: {
-        negate:true, // This reverse the validation check, password must not be same as temporary password
-        otherField:"temporaryPassword"
+  first_name:[
+    Validation.requiredWith({
+      params :{
+        fields:["last_name","middle_name"]
       }
     })
   ],
-  confirmPassword:[
+  last_name:[
     Validation.isString()
   ],
-  temporaryPassword:[
+  middle_name:[
     Validation.isString()
   ]
 });
