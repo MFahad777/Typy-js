@@ -8,6 +8,7 @@ import {
     IIsArrayValidationDto,
     IValidationInDto,
     IValidationNoinDto,
+    IValidationRequiredWithDto,
     IValidationRangeorbetweenDto,
     IValidationIsobjectDto,
     IValidationIfDto,
@@ -1150,6 +1151,67 @@ export class Validation {
                     : !params.negate && !isSame
                         ? Promise.reject(message)
                         : Promise.resolve()
+            })
+
+        }
+    }
+
+    /**
+     * To check if the field exist if its peers exists too.
+     *
+     * @param validation_options
+     */
+    static requiredWith(validation_options: IValidationRequiredWithDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                fields: []
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute required with any one of the following fields ${params.fields}`
+        } = validation_options;
+
+        if (!Boolean(params.fields)) {
+            throw new Error(`(requiredWith) validation, params.fields must not be empty array`);
+        }
+
+        if (!Array.isArray(params.fields)) {
+            throw new Error(`(requiredWith) validation, params.fields must be of type array`);
+        }
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject =
+                    location === "body"
+                        ? req.body
+                        : location === "query"
+                            ? req.query
+                            : location === "headers"
+                                ? req.headers
+                                : req.params;
+
+                const anyOfTheOtherFieldExists = params.fields.some((otherField : string) =>
+                    Boolean(
+                        get(requestObject, otherField, false)
+                    )
+                );
+
+                const doesCurrentFieldExist = Boolean(value);
+
+                if (anyOfTheOtherFieldExists && !doesCurrentFieldExist) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
             })
 
         }
