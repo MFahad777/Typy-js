@@ -56,6 +56,8 @@ there is separate test suite for each validation API.
     - [Example](#example-20)
   - [Validation.requiredWith(validation_options)](#validationrequiredwithvalidation_options)
     - [Example](#example-21)
+  - [Validation.requiredWithAll(validation_options)](#validationrequiredwithallvalidation_options)
+    - [Example](#example-22)
 - [Other](#other)
 - [License](#license)
 
@@ -1001,7 +1003,6 @@ app.post("/post",
 });
 ```
 
-
 ## Validation.requiredWith(validation_options)
 
 A function that returns a validation middleware that checks the field that must be required with its peers.
@@ -1020,6 +1021,45 @@ const { Rule, Validation } = require("typy-js");
 const createUserRule = new Rule({
   first_name:[
     Validation.requiredWith({
+      params :{
+        fields:["last_name","middle_name"]
+      }
+    })
+  ],
+  last_name:[
+    Validation.isString()
+  ],
+  middle_name:[
+    Validation.isString()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.requiredWithAll(validation_options)
+
+A function that returns a validation middleware that checks the field that must be required with all of its peers.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `fields (Required)` : Name of the fields to pair with.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  first_name:[
+    Validation.requiredWithAll({
       params :{
         fields:["last_name","middle_name"]
       }

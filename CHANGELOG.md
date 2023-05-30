@@ -23,7 +23,8 @@ All notable changes to this project will be documented in this file.
   - See `validation.same.test.js`
 - Added requiredWith validation.
   - See `validation.requiredwith.test.js`
-
+- Added requiredWithAll validation.
+  - See `validation.requiredwithall.test.js`
 
 ## v1.1.0
 
