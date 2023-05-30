@@ -1,6 +1,6 @@
 {
   "name": "typy-js",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A validation package for express js to validate incoming request payload.",
   "main": "dist/index.js",
   "scripts": {
