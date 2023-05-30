@@ -6,11 +6,23 @@ All notable changes to this project will be documented in this file.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [v1.0.1](#v101)
+- [v1.1.1](#v111)
   - [Added](#added)
+- [v1.0.1](#v101)
+  - [Added](#added-1)
   - [Fixed](#fixed)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## v1.1.1
+
+### Added
+- Added isStrongPassword validation.
+  - See `validation.isstrongpassword.test.js`
+- Added isEmail validation.
+  - See `validation.isemail.test.js`
+
+
 ## v1.0.1
 
 ### Added

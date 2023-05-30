@@ -19,7 +19,9 @@ import {
     IValidationTrimDto,
     IValidationReplaceDto,
     IValidationIsjwtDto,
-    IRequiredValidationDto
+    IRequiredValidationDto,
+    IValidationIsStrongPasswordDto,
+    IValidationIsEmailDto
 } from "./dtos";
 
 import { get,isEqual } from "lodash";
@@ -1007,5 +1009,90 @@ export class Validation {
                 .isJWT()
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
+    }
+
+    /**
+     * Check if the string is a strong password
+     *
+     * @param {IValidationIsStrongPasswordDto} [validation_options]
+     * @validation
+     */
+    static isStrongPassword(validation_options : IValidationIsStrongPasswordDto = {}) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute does not have a strong password`
+        } = validation_options;
+
+        if (params.pattern != null && !(params.pattern instanceof RegExp)) {
+            throw new Error(`(isStrongPassword) validation pattern must be a regex`)
+        }
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .custom((value) => {
+                    if (params.pattern !== undefined) {
+
+                        return params.pattern.test(value)
+                            ? Promise.resolve()
+                            : Promise.reject(message)
+                    }
+                })
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+
+    }
+
+    /**
+     * To check if the string is a valid email address
+     *
+     * @param {IValidationIsEmailDto} [validation_options]
+     */
+    static isEmail(validation_options: IValidationIsEmailDto = {}) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute is not a valid email address`
+        } = validation_options;
+
+        if (params.pattern != null && !(params.pattern instanceof RegExp)) {
+            throw new Error(`(isEmail) validation pattern must be a regex`)
+        }
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .custom((value) => {
+                    if (params.pattern !== undefined) {
+
+                        return params.pattern.test(value)
+                            ? Promise.resolve()
+                            : Promise.reject(message)
+                    }
+                })
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+
     }
 }

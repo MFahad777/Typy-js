@@ -48,6 +48,10 @@ there is separate test suite for each validation API.
     - [Example](#example-16)
   - [Validation.isJwt(validation_options)](#validationisjwtvalidation_options)
     - [Example](#example-17)
+  - [Validation.isStrongPassword(validation_options)](#validationisstrongpasswordvalidation_options)
+    - [Example](#example-18)
+  - [Validation.isEmail(validation_options)](#validationisemailvalidation_options)
+    - [Example](#example-19)
 - [Other](#other)
 - [License](#license)
 
@@ -877,6 +881,64 @@ const createPostRule = new Rule({
       checkIn:"header",
       message:"The :attribute's value is not a valid jwt token"
     })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isStrongPassword(validation_options)
+
+A function that returns a validation middleware that checks if the string is a strong password.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Optional)` : Params
+  - `pattern (Optional)` : A Regex pattern to match.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  password:[
+    Validation.isStrongPassword()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isEmail(validation_options)
+
+A function that returns a validation middleware that checks if the string is a valid email address.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Optional)` : Params
+  - `pattern (Optional)` : A Regex pattern to match.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  email:[
+    Validation.isEmail()
   ]
 });
 
