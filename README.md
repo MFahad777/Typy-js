@@ -52,6 +52,12 @@ there is separate test suite for each validation API.
     - [Example](#example-18)
   - [Validation.isEmail(validation_options)](#validationisemailvalidation_options)
     - [Example](#example-19)
+  - [Validation.same(validation_options)](#validationsamevalidation_options)
+    - [Example](#example-20)
+  - [Validation.requiredWith(validation_options)](#validationrequiredwithvalidation_options)
+    - [Example](#example-21)
+  - [Validation.requiredWithAll(validation_options)](#validationrequiredwithallvalidation_options)
+    - [Example](#example-22)
 - [Other](#other)
 - [License](#license)
 
@@ -949,6 +955,132 @@ app.post("/post",
     res.json("Successfully Passed All Validation")
 });
 ```
+
+## Validation.same(validation_options)
+
+A function that returns a validation middleware that checks if the one field value is same as another field value.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `negate (Required)` : Set to true is want to reverse the validation logic.
+  - `otherField (Required)` : The other field to match with.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  password:[
+    Validation.same({
+      params:{
+        otherField: "confirmPassword"
+      }
+    }),
+    Validation.same({
+      message:"The :attribute's value must not be same as temporaryPassword's value",
+      params: {
+        negate:true, // This reverse the validation check, password must not be same as temporary password
+        otherField:"temporaryPassword"
+      }
+    })
+  ],
+  confirmPassword:[
+    Validation.isString()
+  ],
+  temporaryPassword:[
+    Validation.isString()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.requiredWith(validation_options)
+
+A function that returns a validation middleware that checks the field that must be required with its peers.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `fields (Required)` : Name of the fields to pair with.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  first_name:[
+    Validation.requiredWith({
+      params :{
+        fields:["last_name","middle_name"]
+      }
+    })
+  ],
+  last_name:[
+    Validation.isString()
+  ],
+  middle_name:[
+    Validation.isString()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.requiredWithAll(validation_options)
+
+A function that returns a validation middleware that checks the field that must be required with all of its peers.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `fields (Required)` : Name of the fields to pair with.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  first_name:[
+    Validation.requiredWithAll({
+      params :{
+        fields:["last_name","middle_name"]
+      }
+    })
+  ],
+  last_name:[
+    Validation.isString()
+  ],
+  middle_name:[
+    Validation.isString()
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
 
 # Other
 Some other features that comes with this package are following.
