@@ -17,5 +17,6 @@ export { IValidationIsstringDto } from "./validation.isstring.dto";
 export { IValidationTrimDto } from "./validation.trim.dto";
 export { IValidationReplaceDto } from "./validation.replace.dto";
 export { IValidationIsjwtDto } from "./validation.isjwt.dto";
-export { IValidationIsStrongPasswordDto } from "./validation.isstrongpassword.dto"
-export { IValidationIsEmailDto } from "./validation.isemail.dto"
+export { IValidationIsStrongPasswordDto } from "./validation.isstrongpassword.dto";
+export { IValidationIsEmailDto } from "./validation.isemail.dto";
+export { IValidationSameDto } from "./validation.same.dto";

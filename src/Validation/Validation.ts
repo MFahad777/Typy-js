@@ -4,6 +4,7 @@
 import {
     ICustomValidationDto,
     IIntegerValidationDto,
+    IValidationSameDto,
     IIsArrayValidationDto,
     IValidationInDto,
     IValidationNoinDto,
@@ -1093,6 +1094,64 @@ export class Validation {
                 })
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
+    }
 
+    /**
+     * Check if the field value is same or not same as the current field value
+     *
+     * @param validation_options
+     */
+    static same(validation_options : IValidationSameDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                negate : false,
+                otherField : ""
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute is not same as ${params.otherField}'s value`
+        } = validation_options;
+
+        if (!Boolean(params.otherField)) {
+            throw new Error(`(same) validation method expect params.otherField to be defined`);
+        }
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject =
+                    location === "body"
+                        ? req.body
+                        : location === "query"
+                            ? req.query
+                            : location === "headers"
+                                ? req.headers
+                                : req.params;
+
+                const getOtherFieldValue = get(requestObject,params.otherField,false);
+
+                const isSame = JSON.stringify(getOtherFieldValue) === JSON.stringify(value);
+
+                /**
+                 * If params.negate is true and the values are same then Reject, else
+                 * if params.negate is false and the values are not same then Reject, else
+                 * Pass
+                 */
+                return params.negate && isSame
+                    ? Promise.reject(message)
+                    : !params.negate && !isSame
+                        ? Promise.reject(message)
+                        : Promise.resolve()
+            })
+
+        }
     }
 }
