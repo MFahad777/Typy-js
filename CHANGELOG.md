@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added isStrongPassword validation.
   - See `validation.isstrongpassword.test.js`
+- Added isEmail validation.
+  - See `validation.isemail.test.js`
 
 
 ## v1.0.1
