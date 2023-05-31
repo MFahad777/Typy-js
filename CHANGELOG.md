@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
   - See `validation.afterorequal.test.js`
 - Added `isUUID` validation.
   - See `validation.isuuid.test.js`
+- Added `isDate` validation.
+  - See `validation.isdate.test.js`
 
 ## v1.2.0
 

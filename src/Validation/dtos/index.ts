@@ -23,3 +23,4 @@ export { IValidationSameDto } from "./validation.same.dto";
 export { IValidationRequiredWithDto } from "./validation.requiredwith.dto";
 export { IValidationAfterDto } from "./validation.after.dto";
 export { IValidationIsUUIDDto } from "./validation.isuuid.dto";
+export { IValidationIsDateDto } from "./validation.isdate.dto";

@@ -64,6 +64,8 @@ there is separate test suite for each validation API.
     - [Example](#example-24)
   - [Validation.isUUID(validation_options)](#validationisuuidvalidation_options)
     - [Example](#example-25)
+  - [Validation.isDate(validation_options)](#validationisdatevalidation_options)
+    - [Example](#example-26)
 - [Other](#other)
 - [License](#license)
 
@@ -1178,6 +1180,42 @@ const createUser = new Rule({
       }
     })
   ],
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isDate(validation_options)
+
+A function that returns a validation middleware that checks if provided value is a valid date.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Optional)` : Params
+  - `format (Optional)` : Date format, if not passed params then default is 'YYYY-MM-DD'.
+  - `delimiters (Optional)` : It is an array of allowed date delimiters, if not passed params then defaults to ['/', '-'].
+  - `strictMode (Optional)` : If strictMode is set to true, the validator will reject strings different from format.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  dateOfBirth:[
+    Validation.isDate({
+      params : {
+        format:"YYYY/MM/DD",
+        delimiters:["-","/"]
+      }
+    })
+  ]
 });
 
 app.post("/post",

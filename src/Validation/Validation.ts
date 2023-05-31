@@ -10,6 +10,7 @@ import {
     IValidationAfterDto,
     IValidationInDto,
     IValidationNoinDto,
+    IValidationIsDateDto,
     IValidationRequiredWithDto,
     IValidationRangeorbetweenDto,
     IValidationIsobjectDto,
@@ -1520,6 +1521,39 @@ export class Validation {
             return toMatch
                 .isUUID(params.version)
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * Check if valid date
+     *
+     * @param validation_options
+     */
+    static isDate(validation_options : IValidationIsDateDto = {}) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                format:"YYYY-MM-DD",
+                delimiters:["-"],
+                strictMode:false
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid date`
+        } = validation_options;
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isDate(params)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+
         }
     }
 }
