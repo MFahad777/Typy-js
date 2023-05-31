@@ -58,6 +58,16 @@ there is separate test suite for each validation API.
     - [Example](#example-21)
   - [Validation.requiredWithAll(validation_options)](#validationrequiredwithallvalidation_options)
     - [Example](#example-22)
+  - [Validation.after(validation_options)](#validationaftervalidation_options)
+    - [Example](#example-23)
+  - [Validation.afterOrEqual(validation_options)](#validationafterorequalvalidation_options)
+    - [Example](#example-24)
+  - [Validation.isUUID(validation_options)](#validationisuuidvalidation_options)
+    - [Example](#example-25)
+  - [Validation.isDate(validation_options)](#validationisdatevalidation_options)
+    - [Example](#example-26)
+  - [Validation.isValidMongoId(validation_options)](#validationisvalidmongoidvalidation_options)
+    - [Example](#example-27)
 - [Other](#other)
 - [License](#license)
 
@@ -1071,6 +1081,170 @@ const createUserRule = new Rule({
   middle_name:[
     Validation.isString()
   ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.after(validation_options)
+
+A function that returns a validation middleware that checks if the date is after an specified date.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `date (Required)` : A valid date in string format, (eg : "2023-05-03" ). You can also pass another field name too.
+    - See `validation.after.test.js` for more detail.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createProductRule = new Rule({
+  expire_date:[
+    Validation.after({
+      params : {
+        date: "today"
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.afterOrEqual(validation_options)
+
+A function that returns a validation middleware that checks if the date is after or equal to a specified date.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `date (Required)` : A valid date in string format, (eg : "2023-05-03" ). You can also pass another field name too.
+    - See `validation.afterorequal.test.js` for more detail.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createProductRule = new Rule({
+  expire_date:[
+    Validation.afterOrEqual({
+      params : {
+        date: "today"
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isUUID(validation_options)
+
+A function that returns a validation middleware that checks if the date is after or equal to a specified date.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `version (Required)` : A valid UUID version
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  user_id:[
+    Validation.isUUID({
+      params:{
+        version:"all"
+      }
+    })
+  ],
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isDate(validation_options)
+
+A function that returns a validation middleware that checks if provided value is a valid date.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Optional)` : Params
+  - `format (Optional)` : Date format, if not passed params then default is 'YYYY-MM-DD'.
+  - `delimiters (Optional)` : It is an array of allowed date delimiters, if not passed params then defaults to ['/', '-'].
+  - `strictMode (Optional)` : If strictMode is set to true, the validator will reject strings different from format.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  dateOfBirth:[
+    Validation.isDate({
+      params : {
+        format:"YYYY/MM/DD",
+        delimiters:["-","/"]
+      }
+    })
+  ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isValidMongoId(validation_options)
+
+A function that returns a validation middleware that checks if provided value is a valid mongo Id.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  user_id:[
+    Validation.isValidMongoId()
+  ],
 });
 
 app.post("/post",

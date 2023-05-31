@@ -6,8 +6,12 @@ import {
     IIntegerValidationDto,
     IValidationSameDto,
     IIsArrayValidationDto,
+    IValidationIsUUIDDto,
+    IValidationAfterDto,
     IValidationInDto,
+    IValidationIsValidMongoIdDto,
     IValidationNoinDto,
+    IValidationIsDateDto,
     IValidationRequiredWithDto,
     IValidationRangeorbetweenDto,
     IValidationIsobjectDto,
@@ -1251,14 +1255,7 @@ export class Validation {
 
             return toMatch.custom((value, { req, location }) => {
 
-                const requestObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : location === "headers"
-                                ? req.headers
-                                : req.params;
+                const requestObject = Util.getRequestObject(req,location);
 
                 const allOfTheFieldsExists = params.fields.every((otherField : string) =>
                     Boolean(
@@ -1275,6 +1272,317 @@ export class Validation {
                 return Promise.resolve();
             })
 
+        }
+    }
+
+    /**
+     * To validate date is after a specified date.
+     *
+     * @param validation_options
+     */
+    static after(validation_options : IValidationAfterDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                date:""
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's date is not after ${params.date}`
+        } = validation_options;
+
+        if (typeof params.date !== 'string') {
+            throw new Error(`(after) validation, params.date must be of type string`);
+        }
+
+        return (field: string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            /**
+             * If date is set to tomorrow
+             */
+            if (params.date === "tomorrow") {
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(tomorrow.toString())
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If date is set to day
+             */
+            if (params.date === "today") {
+                const today = new Date();
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(today.toString())
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If set a specific date
+             */
+            if (!isNaN(Date.parse(params.date))) {
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(params.date)
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If matching with another field
+             */
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject = Util.getRequestObject(req,location);
+
+                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+
+                const getCurrentDate = new Date(value);
+
+                getOtherFieldValue.setUTCHours(0,0,0,0);
+
+                getCurrentDate.setUTCHours(0,0,0,0);
+
+                if (
+                    !(getCurrentDate > getOtherFieldValue)
+                ) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * To validate date is after or equal a specified date.
+     *
+     * @param validation_options
+     */
+    static afterOrEqual(validation_options : IValidationAfterDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                date:""
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's date is not after or equal to ${params.date}`
+        } = validation_options;
+
+        if (typeof params.date !== 'string') {
+            throw new Error(`(after) validation, params.date must be of type string`);
+        }
+
+        return (field: string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            /**
+             * If date is set to tomorrow
+             */
+            if (params.date === "tomorrow") {
+                const today = new Date();
+
+                today.setUTCHours(0,0,0,0);
+
+                const tomorrow = new Date(today);
+
+                tomorrow.setUTCHours(0,0,0,0);
+
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= tomorrow)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If date is set to today
+             */
+            if (params.date === "today") {
+
+                const today = new Date();
+
+                today.setUTCHours(0,0,0,0);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= today)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If set a specific date
+             */
+            if (!isNaN(Date.parse(params.date))) {
+
+                const passedDate = new Date(params.date);
+
+                passedDate.setUTCHours(0,0,0,0);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= passedDate)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If matching with another field
+             */
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject = Util.getRequestObject(req,location);
+
+                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+
+                const getCurrentDate = new Date(value);
+
+                getOtherFieldValue.setUTCHours(0,0,0,0);
+
+                getCurrentDate.setUTCHours(0,0,0,0);
+
+                if (!(getCurrentDate >= getOtherFieldValue)) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * Check if the value is a valid UUID
+     *
+     * @param validation_options
+     */
+    static isUUID(validation_options : IValidationIsUUIDDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                version:"all"
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid UUID`
+        } = validation_options;
+
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isUUID(params.version)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * Check if valid date
+     *
+     * @param validation_options
+     */
+    static isDate(validation_options : IValidationIsDateDto = {}) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                format:"YYYY-MM-DD",
+                delimiters:["-"],
+                strictMode:false
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid date`
+        } = validation_options;
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isDate(params)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+
+        }
+    }
+
+    /**
+     * Check if the passed value is a valid mongodb id
+     *
+     * @param validation_options
+     */
+    static isValidMongoId(validation_options: IValidationIsValidMongoIdDto = {}) : Function {
+
+        const {
+            checkIn = "any"
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid mongoDB Id`
+        } = validation_options;
+
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isMongoId()
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }
 }

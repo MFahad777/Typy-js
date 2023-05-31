@@ -21,3 +21,7 @@ export { IValidationIsStrongPasswordDto } from "./validation.isstrongpassword.dt
 export { IValidationIsEmailDto } from "./validation.isemail.dto";
 export { IValidationSameDto } from "./validation.same.dto";
 export { IValidationRequiredWithDto } from "./validation.requiredwith.dto";
+export { IValidationAfterDto } from "./validation.after.dto";
+export { IValidationIsUUIDDto } from "./validation.isuuid.dto";
+export { IValidationIsDateDto } from "./validation.isdate.dto";
+export { IValidationIsValidMongoIdDto } from "./validation.isvalidmongoid.dto";
