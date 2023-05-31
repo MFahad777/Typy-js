@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
   - See `validation.after.test.js`
 - Added `afterOrEqual` validation.
   - See `validation.afterorequal.test.js`
+- Added `isUUID` validation.
+  - See `validation.isuuid.test.js`
 
 ## v1.2.0
 

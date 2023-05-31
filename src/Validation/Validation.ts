@@ -6,6 +6,7 @@ import {
     IIntegerValidationDto,
     IValidationSameDto,
     IIsArrayValidationDto,
+    IValidationIsUUIDDto,
     IValidationAfterDto,
     IValidationInDto,
     IValidationNoinDto,
@@ -1488,6 +1489,37 @@ export class Validation {
                 return Promise.resolve();
 
             }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * Check if the value is a valid UUID
+     *
+     * @param validation_options
+     */
+    static isUUID(validation_options : IValidationIsUUIDDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                version:"all"
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid UUID`
+        } = validation_options;
+
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isUUID(params.version)
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }
 }

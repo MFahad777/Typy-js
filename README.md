@@ -62,6 +62,8 @@ there is separate test suite for each validation API.
     - [Example](#example-23)
   - [Validation.afterOrEqual(validation_options)](#validationafterorequalvalidation_options)
     - [Example](#example-24)
+  - [Validation.isUUID(validation_options)](#validationisuuidvalidation_options)
+    - [Example](#example-25)
 - [Other](#other)
 - [License](#license)
 
@@ -1143,6 +1145,39 @@ const createProductRule = new Rule({
       }
     })
   ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isUUID(validation_options)
+
+A function that returns a validation middleware that checks if the date is after or equal to a specified date.
+
+`validation_options (Required)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `version (Required)` : A valid UUID version
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  user_id:[
+    Validation.isUUID({
+      params:{
+        version:"all"
+      }
+    })
+  ],
 });
 
 app.post("/post",

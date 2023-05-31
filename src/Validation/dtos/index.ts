@@ -22,3 +22,4 @@ export { IValidationIsEmailDto } from "./validation.isemail.dto";
 export { IValidationSameDto } from "./validation.same.dto";
 export { IValidationRequiredWithDto } from "./validation.requiredwith.dto";
 export { IValidationAfterDto } from "./validation.after.dto";
+export { IValidationIsUUIDDto } from "./validation.isuuid.dto";
