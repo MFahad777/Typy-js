@@ -19,6 +19,22 @@ type TPayloadLocation = { [K in AllAvailableLocations] : ValidationChain }
 export class Util {
 
     /**
+     * Return the request object that has payload
+     *
+     * @param req
+     * @param location
+     */
+    static getRequestObject(req : any, location : string) {
+        return location === "body"
+            ? req.body
+            : location === "query"
+                ? req.query
+                : location === "headers"
+                    ? req.headers
+                    : req.params;
+    }
+
+    /**
      * Replace the message with the actual field
      *
      * @param field

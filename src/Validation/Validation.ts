@@ -6,6 +6,7 @@ import {
     IIntegerValidationDto,
     IValidationSameDto,
     IIsArrayValidationDto,
+    IValidationAfterDto,
     IValidationInDto,
     IValidationNoinDto,
     IValidationRequiredWithDto,
@@ -1251,14 +1252,7 @@ export class Validation {
 
             return toMatch.custom((value, { req, location }) => {
 
-                const requestObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : location === "headers"
-                                ? req.headers
-                                : req.params;
+                const requestObject = Util.getRequestObject(req,location);
 
                 const allOfTheFieldsExists = params.fields.every((otherField : string) =>
                     Boolean(
@@ -1275,6 +1269,89 @@ export class Validation {
                 return Promise.resolve();
             })
 
+        }
+    }
+
+    /**
+     * To validate date is after a specified date.
+     *
+     * @param validation_options
+     */
+    static after(validation_options : IValidationAfterDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                date:""
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's date is not after ${params.date}`
+        } = validation_options;
+
+        if (typeof params.date !== 'string') {
+            throw new Error(`(after) validation, params.date must be of type string`);
+        }
+
+        return (field: string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            /**
+             * If date is set to tomorrow
+             */
+            if (params.date === "tomorrow") {
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(tomorrow.toString())
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If date is set to day
+             */
+            if (params.date === "today") {
+                const today = new Date();
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(today.toString())
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If set a specific date
+             */
+            if (!isNaN(Date.parse(params.date))) {
+                return toMatch
+                    .if((value : any) => value !== undefined)
+                    .isAfter(params.date)
+                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }
+
+            /**
+             * If matching with another field
+             */
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject = Util.getRequestObject(req,location);
+
+                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+
+                const getCurrentDate = new Date(value);
+
+                if (getCurrentDate < getOtherFieldValue) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }
 }
