@@ -24,3 +24,4 @@ export { IValidationRequiredWithDto } from "./validation.requiredwith.dto";
 export { IValidationAfterDto } from "./validation.after.dto";
 export { IValidationIsUUIDDto } from "./validation.isuuid.dto";
 export { IValidationIsDateDto } from "./validation.isdate.dto";
+export { IValidationIsValidMongoIdDto } from "./validation.isvalidmongoid.dto";

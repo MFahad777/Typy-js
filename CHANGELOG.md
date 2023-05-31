@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
   - See `validation.isuuid.test.js`
 - Added `isDate` validation.
   - See `validation.isdate.test.js`
+- Added `isValidMongoId` validation.
+  - See `validation.isvalidmongoid.test.js`
 
 ## v1.2.0
 

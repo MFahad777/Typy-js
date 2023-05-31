@@ -66,6 +66,8 @@ there is separate test suite for each validation API.
     - [Example](#example-25)
   - [Validation.isDate(validation_options)](#validationisdatevalidation_options)
     - [Example](#example-26)
+  - [Validation.isValidMongoId(validation_options)](#validationisvalidmongoidvalidation_options)
+    - [Example](#example-27)
 - [Other](#other)
 - [License](#license)
 
@@ -1216,6 +1218,33 @@ const createUser = new Rule({
       }
     })
   ]
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.isValidMongoId(validation_options)
+
+A function that returns a validation middleware that checks if provided value is a valid mongo Id.
+
+`validation_options (Optional)`
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUser = new Rule({
+  user_id:[
+    Validation.isValidMongoId()
+  ],
 });
 
 app.post("/post",

@@ -9,6 +9,7 @@ import {
     IValidationIsUUIDDto,
     IValidationAfterDto,
     IValidationInDto,
+    IValidationIsValidMongoIdDto,
     IValidationNoinDto,
     IValidationIsDateDto,
     IValidationRequiredWithDto,
@@ -1554,6 +1555,34 @@ export class Validation {
                 .isDate(params)
                 .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
 
+        }
+    }
+
+    /**
+     * Check if the passed value is a valid mongodb id
+     *
+     * @param validation_options
+     */
+    static isValidMongoId(validation_options: IValidationIsValidMongoIdDto = {}) : Function {
+
+        const {
+            checkIn = "any"
+        } = validation_options;
+
+        let {
+            message = `The :attribute's value is not a valid mongoDB Id`
+        } = validation_options;
+
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            return toMatch
+                .isMongoId()
+                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
         }
     }
 }
