@@ -7,13 +7,13 @@ const {
     setRoute
 } = require("../config");
 
-describe("After Validation Rule",  () => {
+describe("After Or Equal Validation Rule",  () => {
 
-    it("should throw validation error if current field date is not after today",async () => {
+    it("should throw validation error if current field date is not after or equal today",async () => {
 
         const createProductRule = new Rule({
             expire_date:[
-                Validation.after({
+                Validation.afterOrEqual({
                     params : {
                         date: "today"
                     }
@@ -21,23 +21,23 @@ describe("After Validation Rule",  () => {
             ]
         });
 
-        setRoute("post","/after-createProductRule",createProductRule);
+        setRoute("post","/after-or-equal-createProductRule",createProductRule);
 
         const response = await request(app)
-            .post("/after-createProductRule")
-            .send({ expire_date:"2023-05-05" });
+            .post("/after-or-equal-createProductRule")
+            .send({ expire_date:"2023-05-30" });
 
         expect(response.statusCode).toEqual(400);
-        expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after today");
+        expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after or equal to today");
         expect(response.body.errors[0].location).toEqual('body');
         expect(response.body.errors[0].param).toEqual('expire_date');
     })
 
-    it("should throw validation error if current field date is not after tomorrow's date",async () => {
+    it("should throw validation error if current field date is not after or equal to tomorrow's date",async () => {
 
         const createProductRule = new Rule({
             expire_date:[
-                Validation.after({
+                Validation.afterOrEqual({
                     params : {
                         date: "tomorrow"
                     }
@@ -45,23 +45,23 @@ describe("After Validation Rule",  () => {
             ]
         });
 
-        setRoute("post","/after-2-createProductRule",createProductRule);
+        setRoute("post","/after-or-equal-2-createProductRule",createProductRule);
 
         const response = await request(app)
-            .post("/after-2-createProductRule")
-            .send({ expire_date:"2023-05-10" });
+            .post("/after-or-equal-2-createProductRule")
+            .send({ expire_date:"2023-05-31" });
 
         expect(response.statusCode).toEqual(400);
-        expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after tomorrow");
+        expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after or equal to tomorrow");
         expect(response.body.errors[0].location).toEqual('body');
         expect(response.body.errors[0].param).toEqual('expire_date');
     })
 
-    it("should throw validation error if current field date is not after another field's date",async () => {
+    it("should throw validation error if current field date is not after or equal to another field's date",async () => {
 
         const createProductRule = new Rule({
             date:[
-                Validation.after({
+                Validation.afterOrEqual({
                     params : {
                         date: "expire_date"
                     }
@@ -72,14 +72,14 @@ describe("After Validation Rule",  () => {
             ]
         });
 
-        setRoute("post","/after-3-createProductRule",createProductRule);
+        setRoute("post","/after-or-equal-3-createProductRule",createProductRule);
 
         const response = await request(app)
-            .post("/after-3-createProductRule")
+            .post("/after-or-equal-3-createProductRule")
             .send({ date:"2023-02-02",expire_date:"2023-05-10" });
 
         expect(response.statusCode).toEqual(400);
-        expect(response.body.errors[0].msg).toEqual("The date's date is not after expire_date");
+        expect(response.body.errors[0].msg).toEqual("The date's date is not after or equal to expire_date");
         expect(response.body.errors[0].location).toEqual('body');
         expect(response.body.errors[0].param).toEqual('date');
     })

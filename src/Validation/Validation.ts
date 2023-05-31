@@ -1345,7 +1345,143 @@ export class Validation {
 
                 const getCurrentDate = new Date(value);
 
-                if (getCurrentDate < getOtherFieldValue) {
+                getOtherFieldValue.setUTCHours(0,0,0,0);
+
+                getCurrentDate.setUTCHours(0,0,0,0);
+
+                if (
+                    !(getCurrentDate > getOtherFieldValue)
+                ) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+
+            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+        }
+    }
+
+    /**
+     * To validate date is after or equal a specified date.
+     *
+     * @param validation_options
+     */
+    static afterOrEqual(validation_options : IValidationAfterDto) : Function {
+
+        const {
+            checkIn = "any",
+            params = {
+                date:""
+            }
+        } = validation_options;
+
+        let {
+            message = `The :attribute's date is not after or equal to ${params.date}`
+        } = validation_options;
+
+        if (typeof params.date !== 'string') {
+            throw new Error(`(after) validation, params.date must be of type string`);
+        }
+
+        return (field: string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            /**
+             * If date is set to tomorrow
+             */
+            if (params.date === "tomorrow") {
+                const today = new Date();
+
+                today.setUTCHours(0,0,0,0);
+
+                const tomorrow = new Date(today);
+
+                tomorrow.setUTCHours(0,0,0,0);
+
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= tomorrow)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If date is set to today
+             */
+            if (params.date === "today") {
+
+                const today = new Date();
+
+                today.setUTCHours(0,0,0,0);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= today)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If set a specific date
+             */
+            if (!isNaN(Date.parse(params.date))) {
+
+                const passedDate = new Date(params.date);
+
+                passedDate.setUTCHours(0,0,0,0);
+
+                return toMatch.custom((value) => {
+
+                    const getCurrentFieldDate = new Date(value);
+
+                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+
+                    if (!(getCurrentFieldDate >= passedDate)) {
+                        return Promise.reject(message)
+                    }
+
+                    return Promise.resolve();
+
+                });
+            }
+
+            /**
+             * If matching with another field
+             */
+            return toMatch.custom((value, { req, location }) => {
+
+                const requestObject = Util.getRequestObject(req,location);
+
+                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+
+                const getCurrentDate = new Date(value);
+
+                getOtherFieldValue.setUTCHours(0,0,0,0);
+
+                getCurrentDate.setUTCHours(0,0,0,0);
+
+                if (!(getCurrentDate >= getOtherFieldValue)) {
                     return Promise.reject(message);
                 }
 

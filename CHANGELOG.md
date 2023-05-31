@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added `after` validation.
   - See `validation.after.test.js`
+- Added `afterOrEqual` validation.
+  - See `validation.afterorequal.test.js`
 
 ## v1.2.0
 
