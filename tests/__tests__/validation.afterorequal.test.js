@@ -30,7 +30,7 @@ describe("After Or Equal Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after or equal to today");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('expire_date');
+        expect(response.body.errors[0].path).toEqual('expire_date');
     })
 
     it("should throw validation error if current field date is not after or equal to tomorrow's date",async () => {
@@ -54,7 +54,7 @@ describe("After Or Equal Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The expire_date's date is not after or equal to tomorrow");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('expire_date');
+        expect(response.body.errors[0].path).toEqual('expire_date');
     })
 
     it("should throw validation error if current field date is not after or equal to another field's date",async () => {
@@ -81,7 +81,7 @@ describe("After Or Equal Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The date's date is not after or equal to expire_date");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('date');
+        expect(response.body.errors[0].path).toEqual('date');
     })
 
 })

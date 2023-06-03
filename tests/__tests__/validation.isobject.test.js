@@ -37,7 +37,7 @@ describe("Is Object Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The Field user_data Must Be Of Type Object');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('user_data');
+        expect(response.body.errors[0].path).toEqual('user_data');
     });
 
 })

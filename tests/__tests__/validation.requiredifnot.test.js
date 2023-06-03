@@ -35,7 +35,7 @@ describe("Required If Not Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The username is required if email does not exists');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('username');
+        expect(response.body.errors[0].path).toEqual('username');
     })
 
     it("field is required if email is not equal to a test email",async () => {
@@ -65,6 +65,6 @@ describe("Required If Not Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The username is required if email is not equal to testuser@gmail.com');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('username');
+        expect(response.body.errors[0].path).toEqual('username');
     })
 })

@@ -27,7 +27,7 @@ describe("Is Strong Password Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The password does not have a strong password");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('password');
+        expect(response.body.errors[0].path).toEqual('password');
     });
 
     it("passes because sending a strong password",async () => {

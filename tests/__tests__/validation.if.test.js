@@ -42,7 +42,7 @@ describe("If Validation Rule",  () => {
 
         expect(response.body.errors[0].msg).toEqual("The roleName field's value must be same as allowName field's value");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 
     it("verifies that current field must exists if another field exists",async () => {
@@ -72,7 +72,7 @@ describe("If Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The field roleName must exists if allowName exists");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 
     it("verifies that if second field exists then the current field must not exists",async () => {
@@ -102,7 +102,7 @@ describe("If Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The roleName should not exists if allowName is present in the payload");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 
     it("verifies that if second field does not exist then the current field must exists",async () => {
@@ -132,7 +132,7 @@ describe("If Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The roleName must exists if allowName does not exist");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 
     it("verifies that if second field does not exist then the current field must exists",async () => {
@@ -163,7 +163,7 @@ describe("If Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The roleName field can not exists without the allowName Field");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 
     it("verifies that if second field does not exist then the current field must exists",async () => {
@@ -195,6 +195,6 @@ describe("If Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The roleName should exists if allowName value is { a:1 }");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 })

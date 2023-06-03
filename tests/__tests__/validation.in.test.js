@@ -30,6 +30,6 @@ describe("In Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The roleName Must Be In Admin,User');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('roleName');
+        expect(response.body.errors[0].path).toEqual('roleName');
     })
 })

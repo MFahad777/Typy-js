@@ -33,7 +33,7 @@ describe("Same Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The password is not same as confirmPassword's value");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('password');
+        expect(response.body.errors[0].path).toEqual('password');
     })
 
     it("verifies if one field value is not same as the other field's value",async () => {
@@ -70,7 +70,7 @@ describe("Same Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The password's value must not be same as temporaryPassword's value");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('password');
+        expect(response.body.errors[0].path).toEqual('password');
     })
 
 })

@@ -31,6 +31,6 @@ describe("IsJWT Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The authorization's value is not a valid jwt token");
         expect(response.body.errors[0].location).toEqual('headers');
-        expect(response.body.errors[0].param).toEqual('authorization');
+        expect(response.body.errors[0].path).toEqual('authorization');
     })
 })

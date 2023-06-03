@@ -39,7 +39,7 @@ describe("Required With Validation Rule", () => {
         expect(responseOne.statusCode).toEqual(400);
         expect(responseOne.body.errors[0].msg).toEqual('The first_name required with any one of the following fields last_name,middle_name');
         expect(responseOne.body.errors[0].location).toEqual('body');
-        expect(responseOne.body.errors[0].param).toEqual('first_name');
+        expect(responseOne.body.errors[0].path).toEqual('first_name');
     })
 
 })

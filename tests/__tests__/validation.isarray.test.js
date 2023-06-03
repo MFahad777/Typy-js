@@ -27,7 +27,7 @@ describe("Is Array Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The hobbies must be of type array');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('hobbies');
+        expect(response.body.errors[0].path).toEqual('hobbies');
     });
 
     it("Check if the field has minimum of 2 values",async () => {
@@ -54,7 +54,7 @@ describe("Is Array Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The field must be of type array and must have minimum of 2 values');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('hobbies');
+        expect(response.body.errors[0].path).toEqual('hobbies');
     })
 
     it("Check if the field can only have maximum of 2 values",async () => {
@@ -81,7 +81,7 @@ describe("Is Array Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The field must be of type array and must have maximum of 2 values');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('hobbies');
+        expect(response.body.errors[0].path).toEqual('hobbies');
     })
 
 })
