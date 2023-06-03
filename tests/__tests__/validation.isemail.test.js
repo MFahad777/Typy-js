@@ -26,7 +26,7 @@ describe("IsEmail Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The email is not a valid email address");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('email');
+        expect(response.body.errors[0].path).toEqual('email');
     })
 
 })

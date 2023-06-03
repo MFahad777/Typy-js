@@ -27,7 +27,7 @@ describe("Is Date Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The dateOfBirth's value is not a valid date");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('dateOfBirth');
+        expect(response.body.errors[0].path).toEqual('dateOfBirth');
     });
 
     it("should not throw an error valid date",async () => {

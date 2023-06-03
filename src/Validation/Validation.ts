@@ -30,12 +30,13 @@ import {
     IValidationIsEmailDto
 } from "./dtos";
 
-import { get,isEqual } from "lodash";
+import {get, isEqual} from "lodash";
 
 /**
  * Local Imports
  */
-import { Util } from "../Utils/Util";
+import {Util} from "../Utils/Util";
+import {ValidationChain} from "express-validator";
 
 export class Validation {
 
@@ -45,10 +46,11 @@ export class Validation {
      * @param {IRequiredValidationDto} validation_options
      * @return {Function}
      */
-    static required(validation_options : IRequiredValidationDto = {}) : Function {
+    static required(validation_options: IRequiredValidationDto = {}): Function {
 
         const {
             customFunction,
+            bail = false,
             checkIn = "any"
         } = validation_options;
 
@@ -56,17 +58,18 @@ export class Validation {
             message = `The :attribute is required`,
         } = validation_options
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
 
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
-                    checkIn
+                    checkIn,
+                    bail
                 }
 
                 const executeCustomFunction = Validation.custom(customFunctionParams);
@@ -74,9 +77,15 @@ export class Validation {
                 return executeCustomFunction(field)
             }
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .notEmpty()
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"});
+            }
+
+            return chain;
         }
     }
 
@@ -86,11 +95,12 @@ export class Validation {
      * @param {IIntegerValidationDto} validation_options
      * @return { Function }
      */
-    static integer(validation_options : IIntegerValidationDto = {}) : Function {
+    static integer(validation_options: IIntegerValidationDto = {}): Function {
 
         const {
             customFunction,
             checkIn = "any",
+            bail = false,
             params,
         } = validation_options;
 
@@ -99,16 +109,17 @@ export class Validation {
         } = validation_options;
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
-                    checkIn
+                    checkIn,
+                    bail
                 }
 
                 const executeCustomFunction = Validation.custom(customFunctionParams);
@@ -116,8 +127,8 @@ export class Validation {
                 return executeCustomFunction(field)
             }
 
-            let checkIfIntegerBuilder = toMatch
-                .if((value : unknown) => value !== undefined)
+            let checkIfIntegerBuilder: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .isInt(params);
 
             if (params && params.strict === true) {
@@ -128,8 +139,14 @@ export class Validation {
                 });
             }
 
-            return checkIfIntegerBuilder
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            checkIfIntegerBuilder = checkIfIntegerBuilder
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return checkIfIntegerBuilder.bail({level: "request"})
+            }
+
+            return checkIfIntegerBuilder;
         }
     }
 
@@ -139,13 +156,14 @@ export class Validation {
      * @param {IIsArrayValidationDto} validation_options
      * @return { Function }
      */
-    static isArray(validation_options : IIsArrayValidationDto = {}): Function {
+    static isArray(validation_options: IIsArrayValidationDto = {}): Function {
         const {
             customFunction,
             checkIn = "any",
+            bail = false,
             params = {
-                min:undefined,
-                max:undefined
+                min: undefined,
+                max: undefined
             }
         } = validation_options;
 
@@ -155,7 +173,7 @@ export class Validation {
 
         if (params) {
 
-            const allowedDataTypes = ["number","undefined","null"]
+            const allowedDataTypes = ["number", "undefined", "null"]
 
             const onlyMinOrMaxShouldExists = Object.keys(params).every(key => key === 'min' || key === 'max');
 
@@ -175,30 +193,37 @@ export class Validation {
          * Replace with a tag
          */
         message = message
-            .replace(/:min/g,String(params.min))
-            .replace(/:max/g,String(params.max));
+            .replace(/:min/g, String(params.min))
+            .replace(/:max/g, String(params.max));
 
         return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
-            message = Util.replaceMessageWithField(field,message);
+            message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
                     params,
-                    checkIn
+                    checkIn,
+                    bail
                 }
                 const executeCustomFunction = Validation.custom(customFunctionParams);
 
                 return executeCustomFunction(field)
             }
 
-            return toMatch
-                .if((value : unknown) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .isArray(params)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -207,11 +232,12 @@ export class Validation {
      *
      * @param validation_options
      */
-    static custom(validation_options : ICustomValidationDto) : Function {
+    static custom(validation_options: ICustomValidationDto): Function {
 
         const {
             customFunction,
             checkIn = "any",
+            bail = false,
             params,
         } = validation_options;
 
@@ -219,11 +245,11 @@ export class Validation {
         if (!customFunction)
             throw new Error(`For validation type 'custom', customFunction is required`);
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
-            return toMatch.custom((value,reqObject) => {
+            let chain: ValidationChain = toMatch.custom((value, reqObject) => {
 
                 const toSend = {
                     value,
@@ -233,7 +259,13 @@ export class Validation {
                 }
 
                 return customFunction(toSend)
-            })
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
 
     }
@@ -243,12 +275,13 @@ export class Validation {
      *
      * @param validation_options
      */
-    static in(validation_options : IValidationInDto) : Function {
+    static in(validation_options: IValidationInDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                values : []
+                values: []
             }
         } = validation_options;
 
@@ -262,18 +295,24 @@ export class Validation {
         /**
          * Replace with a tag
          */
-        message = message.replace(/:values/g,String(params.values));
+        message = message.replace(/:values/g, String(params.values));
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
-                .if((value : unknown) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .isIn(params.values)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -282,11 +321,12 @@ export class Validation {
      *
      * @param validation_options
      */
-    static notIn(validation_options : IValidationNoinDto) : Function {
+    static notIn(validation_options: IValidationNoinDto): Function {
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                values : []
+                values: []
             },
         } = validation_options;
 
@@ -301,20 +341,26 @@ export class Validation {
         /**
          * Replace the params value with a tag
          */
-        message = message.replace(/:values/g,String(params.values));
+        message = message.replace(/:values/g, String(params.values));
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message)
 
-            return toMatch
-                .if((value : unknown) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .not()
                 .isIn(params.values)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
 
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -323,10 +369,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static rangeOrBetween(validation_options: IValidationRangeorbetweenDto) : Function {
+    static rangeOrBetween(validation_options: IValidationRangeorbetweenDto): Function {
         const {
             checkIn = "any",
-            params: { min = 1, max = 1, type = "number" } = {},
+            bail = false,
+            params: {min = 1, max = 1, type = "number"} = {},
             customFunction,
         } = validation_options;
 
@@ -334,7 +381,7 @@ export class Validation {
             message = `The Field :attribute Must Be Between ${min}${type === "field" ? "'value" : ''} and ${max}${type === "field" ? "'value" : ''}`,
         } = validation_options;
 
-        const supportedTypes = ["number","date","field"];
+        const supportedTypes = ["number", "date", "field"];
 
         if (!min || min === "")
             throw new Error("'between' validation first param (min value) is required")
@@ -353,27 +400,32 @@ export class Validation {
          * To use params in the messages
          */
         message = message
-            .replace(/:min/g,String(min))
-            .replace(/:max/g,String(max))
+            .replace(/:min/g, String(min))
+            .replace(/:max/g, String(max))
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
                     params: validation_options.params,
-                    checkIn
+                    checkIn,
+                    bail,
                 }
+
                 const executeCustomFunction = Validation.custom(customFunctionParams);
 
                 return executeCustomFunction(field)
             }
 
-            return toMatch.if((value : any) => value !== undefined).custom((value,{ req,location }) => {
+            let chain: ValidationChain = toMatch.if((value: any) => value !== undefined).custom((value, {
+                req,
+                location
+            }) => {
 
                 const getObject =
                     location === "body"
@@ -394,9 +446,9 @@ export class Validation {
 
                 if (type === "field") {
                     // @ts-ignore
-                    const minValueOfTheField = get(getObject,min)
+                    const minValueOfTheField = get(getObject, min)
                     // @ts-ignore
-                    const maxValueOfTheField = get(getObject,max);
+                    const maxValueOfTheField = get(getObject, max);
 
                     //To get a boolean value
                     const isDate = !isNaN(Date.parse(minValueOfTheField)) && !isNaN(Date.parse(maxValueOfTheField));
@@ -406,8 +458,7 @@ export class Validation {
                      */
                     if (isDate) {
                         isBetweenFieldValue = (new Date(value) > new Date(minValueOfTheField)) && (new Date(value) < new Date(maxValueOfTheField))
-                    }
-                    else {
+                    } else {
                         isBetweenFieldValue = (value > minValueOfTheField) && (value < maxValueOfTheField)
                     }
 
@@ -420,7 +471,13 @@ export class Validation {
                         : isBetweenFieldValue;
 
                 return toCheck ? Promise.resolve : Promise.reject(message);
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }).withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
 
     }
@@ -430,12 +487,13 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isObject(validation_options : IValidationIsobjectDto = {}) : Function {
+    static isObject(validation_options: IValidationIsobjectDto = {}): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                strict:true
+                strict: true
             },
             customFunction,
         } = validation_options;
@@ -444,27 +502,34 @@ export class Validation {
             message = `The Field :attribute Must Be Of Type Object`,
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
                     params,
-                    checkIn
+                    checkIn,
+                    bail
                 }
                 const executeCustomFunction = Validation.custom(customFunctionParams);
 
                 return executeCustomFunction(field)
             }
 
-            return toMatch
-                .if((value : any) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: any) => value !== undefined)
                 .isObject(params)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -473,14 +538,15 @@ export class Validation {
      *
      * @param validation_options
      */
-    static if(validation_options: IValidationIfDto) : Function {
+    static if(validation_options: IValidationIfDto): Function {
         const {
             checkIn = "any",
             params = {
-                secondField : "",
-                secondFieldValue : "",
-                appliedOnFieldValue : ""
+                secondField: "",
+                secondFieldValue: "",
+                appliedOnFieldValue: ""
             },
+            bail = false,
         } = validation_options;
 
         let {
@@ -488,7 +554,7 @@ export class Validation {
         } = validation_options
 
 
-        if (params.secondField === "" || params.secondFieldValue === "" || params.appliedOnFieldValue === ""){
+        if (params.secondField === "" || params.secondFieldValue === "" || params.appliedOnFieldValue === "") {
             throw new Error("Validation (If) Excepts All 3 params to be passed" +
                 " params.secondField " +
                 " params.secondFieldValue " +
@@ -499,19 +565,19 @@ export class Validation {
          * To use params in the messages
          */
         message = message
-            .replace(/:secondField/g,String(params.secondField))
-            .replace(/:secondFieldValue/g,String(params.secondFieldValue))
-            .replace(/:appliedOnFieldValue/g,String(params.appliedOnFieldValue));
+            .replace(/:secondField/g, String(params.secondField))
+            .replace(/:secondFieldValue/g, String(params.secondFieldValue))
+            .replace(/:appliedOnFieldValue/g, String(params.appliedOnFieldValue));
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch.custom((value,{ req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const defaultValues = ["exists","notexists"];
+                const defaultValues = ["exists", "notexists"];
 
                 const getObject =
                     location === "body"
@@ -563,7 +629,7 @@ export class Validation {
                      * If the secondField value is null/or does not exists and
                      * the actual value/appliedOnValue is null
                      */
-                    if (getFieldValue === "exist_false" && value == null){
+                    if (getFieldValue === "exist_false" && value == null) {
                         return Promise.reject(message)
                     }
 
@@ -577,7 +643,7 @@ export class Validation {
                     /**
                      * If secondValue is null but the actual/appliedOnField Value exists
                      */
-                    if (getFieldValue === "exist_false" && value != null){
+                    if (getFieldValue === "exist_false" && value != null) {
                         return Promise.reject(message)
                     }
 
@@ -648,7 +714,7 @@ export class Validation {
                      * If secondFieldValue is equal to the actual secondField Value
                      * But the appliedOnValue value does not exists
                      */
-                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value == null) {
+                    if (isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue)) && value == null) {
                         return Promise.reject(message)
                     }
 
@@ -663,7 +729,7 @@ export class Validation {
                      * If secondFieldValue is equal to the actual secondField Value
                      * But the appliedOnValue value exists
                      */
-                    if (isEqual(JSON.stringify(params.secondFieldValue),JSON.stringify(getFieldValue)) && value != null) {
+                    if (isEqual(JSON.stringify(params.secondFieldValue), JSON.stringify(getFieldValue)) && value != null) {
                         return Promise.reject(message)
                     }
 
@@ -683,7 +749,13 @@ export class Validation {
                  * Pass the validation
                  */
                 return Promise.resolve();
-            })
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -692,10 +764,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static arrayNotEmpty(validation_options: IValidationArraynotemptyDto = {}) : Function {
+    static arrayNotEmpty(validation_options: IValidationArraynotemptyDto = {}): Function {
         const {
             checkIn = "any",
-            customFunction
+            customFunction,
+            bail = false,
         } = validation_options;
 
         let {
@@ -703,17 +776,18 @@ export class Validation {
         } = validation_options
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
             if (customFunction) {
 
-                const customFunctionParams : ICustomValidationDto = {
+                const customFunctionParams: ICustomValidationDto = {
                     customFunction,
-                    checkIn
+                    checkIn,
+                    bail
                 }
 
                 const executeCustomFunction = Validation.custom(customFunctionParams);
@@ -721,13 +795,19 @@ export class Validation {
                 return executeCustomFunction(field)
             }
 
-            return toMatch
-                .if((value : unknown) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .custom((value) => {
                     return value.length > 0
                         ? Promise.resolve()
                         : Promise.reject(message);
-                }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                }).withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"});
+            }
+
+            return chain;
         }
     }
 
@@ -736,7 +816,7 @@ export class Validation {
      *
      * @param validation_options
      */
-    static customSanitizer(validation_options : IValidationCustomSanitizerDto) : Function {
+    static customSanitizer(validation_options: IValidationCustomSanitizerDto): Function {
         const {
             customFunction,
             checkIn = "any",
@@ -746,11 +826,11 @@ export class Validation {
         if (!customFunction)
             throw new Error(`For validation type 'customSanitizer', customFunction is required`);
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
-            return toMatch.customSanitizer((value,reqObject) => {
+            return toMatch.customSanitizer((value, reqObject) => {
 
                 const toSend = {
                     value,
@@ -769,17 +849,17 @@ export class Validation {
      * @param validation_options
      * @sanitizer
      */
-    static lowerCase(validation_options: IValidationLowercaseDto = {}) : Function {
+    static lowerCase(validation_options: IValidationLowercaseDto = {}): Function {
         const {
             checkIn = "any",
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             return toMatch
-                .if((value : unknown) => value !== undefined)
+                .if((value: unknown) => value !== undefined)
                 .toLowerCase()
         }
     }
@@ -790,17 +870,17 @@ export class Validation {
      * @param validation_options
      * @sanitizer
      */
-    static upperCase(validation_options: IValidationUppercaseDto = {}) : Function {
+    static upperCase(validation_options: IValidationUppercaseDto = {}): Function {
         const {
             checkIn = "any",
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             return toMatch
-                .if((value : unknown) => value !== undefined)
+                .if((value: unknown) => value !== undefined)
                 .toUpperCase()
 
         }
@@ -812,13 +892,14 @@ export class Validation {
      *
      * @param validation_options
      */
-    static requiredIfNot(validation_options: IValidationRequiredIfNotDto) : Function {
+    static requiredIfNot(validation_options: IValidationRequiredIfNotDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                secondField:"",
-                secondFieldValue:""
+                secondField: "",
+                secondFieldValue: ""
             }
         } = validation_options;
 
@@ -840,17 +921,17 @@ export class Validation {
          * To use params in the messages
          */
         message = message
-            .replace(/:secondField/g,String(params.secondField))
-            .replace(/:secondFieldValue/g,String(params.secondFieldValue))
+            .replace(/:secondField/g, String(params.secondField))
+            .replace(/:secondFieldValue/g, String(params.secondFieldValue))
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message)
 
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
                 const getObject =
                     location === "body"
                         ? req.body
@@ -888,13 +969,19 @@ export class Validation {
                  * If the secondFieldValue is equal to the request payload value
                  * and the current field value is empty
                  */
-                if (!isEqual(JSON.stringify(paramValue),JSON.stringify(params.secondFieldValue)) && appliedFieldValueIsEmpty) {
+                if (!isEqual(JSON.stringify(paramValue), JSON.stringify(params.secondFieldValue)) && appliedFieldValueIsEmpty) {
                     return Promise.reject(message);
                 }
 
                 return Promise.resolve();
             })
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -903,12 +990,13 @@ export class Validation {
      *
      * @param {IValidationIsstringDto} validation_options
      */
-    static isString(validation_options: IValidationIsstringDto = {}) : Function {
+    static isString(validation_options: IValidationIsstringDto = {}): Function {
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                min:undefined,
-                max:undefined
+                min: undefined,
+                max: undefined
             }
         } = validation_options;
 
@@ -920,22 +1008,28 @@ export class Validation {
         /**
          * Including the params value by replacing with a tag
          */
-        message = message.replace(/(:min)/ig,`${params.min}`);
-        message = message.replace(/(:max)/ig,`${params.max}`);
+        message = message.replace(/(:min)/ig, `${params.min}`);
+        message = message.replace(/(:max)/ig, `${params.max}`);
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
-                .if((value : unknown) => value !== undefined)
+            let chain: ValidationChain = toMatch
+                .if((value: unknown) => value !== undefined)
                 .isString()
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`))
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`))
                 .isLength(params)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -945,20 +1039,20 @@ export class Validation {
      * @param validation_options
      * @sanitizer
      */
-    static trim(validation_options: IValidationTrimDto) : Function {
+    static trim(validation_options: IValidationTrimDto): Function {
         const {
             params = {
-                chars:""
+                chars: ""
             },
             checkIn = "any",
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             return toMatch
-                .if((value : unknown) => value !== undefined)
+                .if((value: unknown) => value !== undefined)
                 .trim(params.chars);
         }
     }
@@ -967,8 +1061,9 @@ export class Validation {
      * To replace field value
      *
      * @param validation_options
+     * @sanitizer
      */
-    static replace(validation_options: IValidationReplaceDto) : Function {
+    static replace(validation_options: IValidationReplaceDto): Function {
         const {
             params = {
                 value_to_replace: "",
@@ -977,14 +1072,14 @@ export class Validation {
             checkIn = "any",
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             return toMatch
-                .if((value : unknown) => value !== undefined)
-                .customSanitizer((value : string) => {
-                    return value.replace(params.value_to_replace,params.new_value);
+                .if((value: unknown) => value !== undefined)
+                .customSanitizer((value: string) => {
+                    return value.replace(params.value_to_replace, params.new_value);
                 })
         }
     }
@@ -994,10 +1089,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isJwt(validation_options: IValidationIsjwtDto = {}) : Function {
+    static isJwt(validation_options: IValidationIsjwtDto = {}): Function {
 
         const {
             checkIn = "any",
+            bail = false,
         } = validation_options;
 
         let {
@@ -1005,15 +1101,21 @@ export class Validation {
         } = validation_options;
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .isJWT()
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1023,10 +1125,11 @@ export class Validation {
      * @param {IValidationIsStrongPasswordDto} [validation_options]
      * @validation
      */
-    static isStrongPassword(validation_options : IValidationIsStrongPasswordDto = {}) : Function {
+    static isStrongPassword(validation_options: IValidationIsStrongPasswordDto = {}): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
                 pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
             }
@@ -1040,13 +1143,13 @@ export class Validation {
             throw new Error(`(isStrongPassword) validation pattern must be a regex`)
         }
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .custom((value) => {
                     if (params.pattern !== undefined) {
 
@@ -1055,7 +1158,14 @@ export class Validation {
                             : Promise.reject(message)
                     }
                 })
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+
         }
 
     }
@@ -1065,10 +1175,11 @@ export class Validation {
      *
      * @param {IValidationIsEmailDto} [validation_options]
      */
-    static isEmail(validation_options: IValidationIsEmailDto = {}) : Function {
+    static isEmail(validation_options: IValidationIsEmailDto = {}): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
                 pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
@@ -1082,13 +1193,13 @@ export class Validation {
             throw new Error(`(isEmail) validation pattern must be a regex`)
         }
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .custom((value) => {
                     if (params.pattern !== undefined) {
 
@@ -1097,7 +1208,13 @@ export class Validation {
                             : Promise.reject(message)
                     }
                 })
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1106,13 +1223,14 @@ export class Validation {
      *
      * @param validation_options
      */
-    static same(validation_options : IValidationSameDto) : Function {
+    static same(validation_options: IValidationSameDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                negate : false,
-                otherField : ""
+                negate: false,
+                otherField: ""
             }
         } = validation_options;
 
@@ -1124,13 +1242,13 @@ export class Validation {
             throw new Error(`(same) validation method expect params.otherField to be defined`);
         }
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
                 const requestObject =
                     location === "body"
@@ -1141,7 +1259,7 @@ export class Validation {
                                 ? req.headers
                                 : req.params;
 
-                const getOtherFieldValue = get(requestObject,params.otherField,false);
+                const getOtherFieldValue = get(requestObject, params.otherField, false);
 
                 const isSame = JSON.stringify(getOtherFieldValue) === JSON.stringify(value);
 
@@ -1157,6 +1275,12 @@ export class Validation {
                         : Promise.resolve()
             })
 
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+
         }
     }
 
@@ -1165,10 +1289,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static requiredWith(validation_options: IValidationRequiredWithDto) : Function {
+    static requiredWith(validation_options: IValidationRequiredWithDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
                 fields: []
             }
@@ -1186,13 +1311,13 @@ export class Validation {
             throw new Error(`(requiredWith) validation, params.fields must be of type array`);
         }
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
                 const requestObject =
                     location === "body"
@@ -1203,7 +1328,7 @@ export class Validation {
                                 ? req.headers
                                 : req.params;
 
-                const anyOfTheOtherFieldExists = params.fields.some((otherField : string) =>
+                const anyOfTheOtherFieldExists = params.fields.some((otherField: string) =>
                     Boolean(
                         get(requestObject, otherField, false)
                     )
@@ -1216,7 +1341,13 @@ export class Validation {
                 }
 
                 return Promise.resolve();
-            })
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
 
         }
     }
@@ -1226,10 +1357,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static requiredWithAll(validation_options: IValidationRequiredWithDto) : Function {
+    static requiredWithAll(validation_options: IValidationRequiredWithDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
                 fields: []
             }
@@ -1247,17 +1379,17 @@ export class Validation {
             throw new Error(`(requiredWithAll) validation, params.fields must be of type array`);
         }
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const requestObject = Util.getRequestObject(req,location);
+                const requestObject = Util.getRequestObject(req, location);
 
-                const allOfTheFieldsExists = params.fields.every((otherField : string) =>
+                const allOfTheFieldsExists = params.fields.every((otherField: string) =>
                     Boolean(
                         get(requestObject, otherField, false)
                     )
@@ -1270,7 +1402,13 @@ export class Validation {
                 }
 
                 return Promise.resolve();
-            })
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
 
         }
     }
@@ -1280,12 +1418,13 @@ export class Validation {
      *
      * @param validation_options
      */
-    static after(validation_options : IValidationAfterDto) : Function {
+    static after(validation_options: IValidationAfterDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                date:""
+                date: ""
             }
         } = validation_options;
 
@@ -1299,7 +1438,7 @@ export class Validation {
 
         return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
@@ -1310,10 +1449,16 @@ export class Validation {
                 const today = new Date();
                 const tomorrow = new Date(today);
                 tomorrow.setDate(tomorrow.getDate() + 1);
-                return toMatch
-                    .if((value : any) => value !== undefined)
+                let chain: ValidationChain = toMatch
+                    .if((value: any) => value !== undefined)
                     .isAfter(tomorrow.toString())
-                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                    .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
@@ -1321,36 +1466,48 @@ export class Validation {
              */
             if (params.date === "today") {
                 const today = new Date();
-                return toMatch
-                    .if((value : any) => value !== undefined)
+                let chain: ValidationChain = toMatch
+                    .if((value: any) => value !== undefined)
                     .isAfter(today.toString())
-                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                    .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
              * If set a specific date
              */
             if (!isNaN(Date.parse(params.date))) {
-                return toMatch
-                    .if((value : any) => value !== undefined)
+                let chain: ValidationChain = toMatch
+                    .if((value: any) => value !== undefined)
                     .isAfter(params.date)
-                    .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                    .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
              * If matching with another field
              */
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const requestObject = Util.getRequestObject(req,location);
+                const requestObject = Util.getRequestObject(req, location);
 
-                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+                const getOtherFieldValue = new Date(get(requestObject, params.date, false));
 
                 const getCurrentDate = new Date(value);
 
-                getOtherFieldValue.setUTCHours(0,0,0,0);
+                getOtherFieldValue.setUTCHours(0, 0, 0, 0);
 
-                getCurrentDate.setUTCHours(0,0,0,0);
+                getCurrentDate.setUTCHours(0, 0, 0, 0);
 
                 if (
                     !(getCurrentDate > getOtherFieldValue)
@@ -1360,7 +1517,14 @@ export class Validation {
 
                 return Promise.resolve();
 
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }).withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1369,12 +1533,13 @@ export class Validation {
      *
      * @param validation_options
      */
-    static afterOrEqual(validation_options : IValidationAfterDto) : Function {
+    static afterOrEqual(validation_options: IValidationAfterDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                date:""
+                date: ""
             }
         } = validation_options;
 
@@ -1388,7 +1553,7 @@ export class Validation {
 
         return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
@@ -1398,19 +1563,19 @@ export class Validation {
             if (params.date === "tomorrow") {
                 const today = new Date();
 
-                today.setUTCHours(0,0,0,0);
+                today.setUTCHours(0, 0, 0, 0);
 
                 const tomorrow = new Date(today);
 
-                tomorrow.setUTCHours(0,0,0,0);
+                tomorrow.setUTCHours(0, 0, 0, 0);
 
                 tomorrow.setDate(tomorrow.getDate() + 1);
 
-                return toMatch.custom((value) => {
+                let chain: ValidationChain = toMatch.custom((value) => {
 
                     const getCurrentFieldDate = new Date(value);
 
-                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+                    getCurrentFieldDate.setUTCHours(0, 0, 0, 0);
 
                     if (!(getCurrentFieldDate >= tomorrow)) {
                         return Promise.reject(message)
@@ -1419,6 +1584,12 @@ export class Validation {
                     return Promise.resolve();
 
                 });
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
@@ -1428,13 +1599,13 @@ export class Validation {
 
                 const today = new Date();
 
-                today.setUTCHours(0,0,0,0);
+                today.setUTCHours(0, 0, 0, 0);
 
-                return toMatch.custom((value) => {
+                let chain: ValidationChain = toMatch.custom((value) => {
 
                     const getCurrentFieldDate = new Date(value);
 
-                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+                    getCurrentFieldDate.setUTCHours(0, 0, 0, 0);
 
                     if (!(getCurrentFieldDate >= today)) {
                         return Promise.reject(message)
@@ -1443,6 +1614,12 @@ export class Validation {
                     return Promise.resolve();
 
                 });
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
@@ -1452,13 +1629,13 @@ export class Validation {
 
                 const passedDate = new Date(params.date);
 
-                passedDate.setUTCHours(0,0,0,0);
+                passedDate.setUTCHours(0, 0, 0, 0);
 
-                return toMatch.custom((value) => {
+                let chain: ValidationChain = toMatch.custom((value) => {
 
                     const getCurrentFieldDate = new Date(value);
 
-                    getCurrentFieldDate.setUTCHours(0,0,0,0);
+                    getCurrentFieldDate.setUTCHours(0, 0, 0, 0);
 
                     if (!(getCurrentFieldDate >= passedDate)) {
                         return Promise.reject(message)
@@ -1467,22 +1644,28 @@ export class Validation {
                     return Promise.resolve();
 
                 });
+
+                if (bail) {
+                    return chain.bail({level: "request"})
+                }
+
+                return chain;
             }
 
             /**
              * If matching with another field
              */
-            return toMatch.custom((value, { req, location }) => {
+            let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const requestObject = Util.getRequestObject(req,location);
+                const requestObject = Util.getRequestObject(req, location);
 
-                const getOtherFieldValue = new Date(get(requestObject,params.date,false));
+                const getOtherFieldValue = new Date(get(requestObject, params.date, false));
 
                 const getCurrentDate = new Date(value);
 
-                getOtherFieldValue.setUTCHours(0,0,0,0);
+                getOtherFieldValue.setUTCHours(0, 0, 0, 0);
 
-                getCurrentDate.setUTCHours(0,0,0,0);
+                getCurrentDate.setUTCHours(0, 0, 0, 0);
 
                 if (!(getCurrentDate >= getOtherFieldValue)) {
                     return Promise.reject(message);
@@ -1490,7 +1673,13 @@ export class Validation {
 
                 return Promise.resolve();
 
-            }).withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+            }).withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1499,12 +1688,13 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isUUID(validation_options : IValidationIsUUIDDto) : Function {
+    static isUUID(validation_options: IValidationIsUUIDDto): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                version:"all"
+                version: "all"
             }
         } = validation_options;
 
@@ -1513,15 +1703,21 @@ export class Validation {
         } = validation_options;
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .isUUID(params.version)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1530,14 +1726,15 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isDate(validation_options : IValidationIsDateDto = {}) : Function {
+    static isDate(validation_options: IValidationIsDateDto = {}): Function {
 
         const {
             checkIn = "any",
+            bail = false,
             params = {
-                format:"YYYY-MM-DD",
-                delimiters:["-"],
-                strictMode:false
+                format: "YYYY-MM-DD",
+                delimiters: ["-"],
+                strictMode: false
             }
         } = validation_options;
 
@@ -1545,16 +1742,21 @@ export class Validation {
             message = `The :attribute's value is not a valid date`
         } = validation_options;
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .isDate(params)
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
 
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 
@@ -1563,10 +1765,11 @@ export class Validation {
      *
      * @param validation_options
      */
-    static isValidMongoId(validation_options: IValidationIsValidMongoIdDto = {}) : Function {
+    static isValidMongoId(validation_options: IValidationIsValidMongoIdDto = {}): Function {
 
         const {
-            checkIn = "any"
+            checkIn = "any",
+            bail = false
         } = validation_options;
 
         let {
@@ -1574,15 +1777,21 @@ export class Validation {
         } = validation_options;
 
 
-        return (field : string) => {
+        return (field: string) => {
 
-            const toMatch = Util.returnBasedOnCheckIn(checkIn,field);
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
 
             message = Util.replaceMessageWithField(field, message);
 
-            return toMatch
+            let chain: ValidationChain = toMatch
                 .isMongoId()
-                .withMessage((value : unknown) => message.replace(/(:value)|(:data)/ig,`${value}`));
+                .withMessage((value: unknown) => message.replace(/(:value)|(:data)/ig, `${value}`));
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
         }
     }
 }

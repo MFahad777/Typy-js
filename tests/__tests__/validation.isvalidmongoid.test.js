@@ -29,7 +29,7 @@ describe("Is Valid Mongo Id Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The user_id's value is not a valid mongoDB Id");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('user_id');
+        expect(response.body.errors[0].path).toEqual('user_id');
     });
 
     it("should throws validation error",async () => {

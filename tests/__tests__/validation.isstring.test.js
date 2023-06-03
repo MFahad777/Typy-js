@@ -28,7 +28,7 @@ describe("Is String Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The name must be of type string');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('name');
+        expect(response.body.errors[0].path).toEqual('name');
     })
 
     it("Check if the field is of type string and has min character of 5 and maximum characters of 10",async () => {
@@ -54,6 +54,6 @@ describe("Is String Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The name must be of type string and must have 5 and 10 string length');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('name');
+        expect(response.body.errors[0].path).toEqual('name');
     })
 })

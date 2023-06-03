@@ -6,17 +6,29 @@ All notable changes to this project will be documented in this file.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [v1.3.0](#v130)
+- [v2.0.0](#v200)
   - [Added](#added)
-- [v1.2.0](#v120)
+  - [Changed](#changed)
+- [v1.3.0](#v130)
   - [Added](#added-1)
-- [v1.1.0](#v110)
+- [v1.2.0](#v120)
   - [Added](#added-2)
-- [v1.0.1](#v101)
+- [v1.1.0](#v110)
   - [Added](#added-3)
+- [v1.0.1](#v101)
+  - [Added](#added-4)
   - [Fixed](#fixed)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## v2.0.0
+
+### Added
+- Every validation ( not sanitizer ) have an extra key called `bail`, which if set to true will stop further validation if the current one fails.
+  - See `validation.other.test.js` for more detail.
+
+### Changed
+- Error body would contain `path` instead of `param` key.
 
 ## v1.3.0
 

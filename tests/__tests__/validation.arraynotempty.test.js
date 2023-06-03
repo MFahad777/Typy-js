@@ -31,6 +31,6 @@ describe("Array Not Empty Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The array can not be empty');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('skills');
+        expect(response.body.errors[0].path).toEqual('skills');
     })
 })

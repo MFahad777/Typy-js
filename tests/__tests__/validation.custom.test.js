@@ -30,6 +30,6 @@ describe("Custom Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('name length must be greater than 5');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('name');
+        expect(response.body.errors[0].path).toEqual('name');
     })
 })

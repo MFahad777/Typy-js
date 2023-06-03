@@ -32,7 +32,7 @@ describe("Integer Validation Rule",  () => {
         expect(responseOne.statusCode).toEqual(400);
         expect(responseOne.body.errors[0].msg).toEqual('The field id must be of type integer, but you provided A Title');
         expect(responseOne.body.errors[0].location).toEqual('query');
-        expect(responseOne.body.errors[0].param).toEqual('id');
+        expect(responseOne.body.errors[0].path).toEqual('id');
     })
 
     it("Check required validation with a custom function",async () => {
@@ -57,7 +57,7 @@ describe("Integer Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('With Custom Function');
         expect(response.body.errors[0].location).toEqual('query');
-        expect(response.body.errors[0].param).toEqual('id');
+        expect(response.body.errors[0].path).toEqual('id');
     })
 
     it("Multiple field validation", async () => {
@@ -86,11 +86,11 @@ describe("Integer Validation Rule",  () => {
 
         expect(response.body.errors[0].msg).toEqual('The id field must be of type integer');
         expect(response.body.errors[0].location).toEqual('query');
-        expect(response.body.errors[0].param).toEqual('id');
+        expect(response.body.errors[0].path).toEqual('id');
 
         expect(response.body.errors[1].msg).toEqual('The userId field must be of type integer');
         expect(response.body.errors[1].location).toEqual('query');
-        expect(response.body.errors[1].param).toEqual('userId');
+        expect(response.body.errors[1].path).toEqual('userId');
 
     })
 
@@ -116,7 +116,7 @@ describe("Integer Validation Rule",  () => {
 
         expect(response.body.errors[0].msg).toEqual('The id must be of type integer');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('id');
+        expect(response.body.errors[0].path).toEqual('id');
 
 
     })

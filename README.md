@@ -91,6 +91,7 @@ A function that returns a validation middleware for checking if a field is requi
 
 `validation_options (Optional)` 
 - `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)`: Custom error message for the validation failure.
 
@@ -164,6 +165,7 @@ A function that returns a validation middleware for checking if a field is an in
 
 `validation_options (Optional)`
 - `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)`: Custom error message for the validation failure.
 - `params (Optional)`: Params.
@@ -221,6 +223,7 @@ A function that returns a validation middleware for checking if a field is an ar
 
 `validation_options (Optional)`
 - `customFunction (Optional)`: A custom validation function to be executed instead of the default validation.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)`: Custom error message for the validation failure.
 - `params (Optional)`
@@ -278,6 +281,7 @@ A function that returns a validation middleware defined by the user.
 
 `validation_options (Required)`
 - `customFunction (Required)`: A custom validation function to be executed instead of the default validation.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Optional)`: Any extra values to be passed to the custom function
 
@@ -310,6 +314,7 @@ A function that returns a validation middleware for whitelisting values.
 
 `validation_options (Required)`
 - `message (Required)`: A custom message.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Required params
   - `values (Required)` : Can be string or number or any value.
@@ -343,6 +348,7 @@ A function that returns a validation middleware for blacklisting values.
 
 `validation_options (Required)`
 - `message (Required)`: A custom message.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Required params
   - `values (Required)` : Can be string or number or any value.
@@ -377,6 +383,7 @@ A function that returns a validation middleware for defining ranges.
 `validation_options (Required)`
 - `message (Required)`: A custom message.
 - `customFunction (Optional)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Required params
   - `min (Required)` : Can be string or number.
@@ -473,6 +480,7 @@ A function that returns a validation middleware for checking if the passed value
 `validation_options (Required)`
 - `message (Required)`: A custom message.
 - `customFunction (Optional)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Optional)`: Params
   - `strict (Optional)` : Set to true if wanna strict type type
@@ -512,6 +520,7 @@ This is a complex if validation, check validation.if.test.js for more clarity.
 `validation_options (Required)`
 - `message (Optional)`: A custom message.
 - `customFunction (Optional)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Params
   - `secondField (Required)` : Name of another field.
@@ -591,6 +600,7 @@ A function that returns a validation middleware that checks if the array is empt
 `validation_options (Optional)`
 - `message (Optional)`: A custom message.
 - `customFunction (Optional)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 
 ### Example
@@ -623,6 +633,7 @@ A function that returns a sanitizer middleware function defined by user.
 
 `validation_options (Required)`
 - `customFunction (Required)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 
 ### Example
@@ -653,6 +664,7 @@ app.post("/post",
 A function that returns a sanitizer middleware to set string value as lowercase.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 
 ### Example
@@ -679,6 +691,7 @@ app.post("/post",
 A function that returns a sanitizer middleware to set string value as uppercase.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 
 ### Example
@@ -707,6 +720,7 @@ A function that returns a validation middleware that makes a field required if t
 `validation_options (Required)`
 - `message (Optional)`: A custom message.
 - `customFunction (Optional)`: A custom function, which can be defined by user.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Params
   - `secondField (Required)` : Name of another field.
@@ -748,6 +762,7 @@ A function that returns a validation middleware to check if the current field's 
 
 `validation_options (Optional)`
 - `message (Optional)`: A custom message.
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Optional)`: Params
   - `min (Optional)` : Minimum number of characters.
@@ -794,6 +809,7 @@ const createUserRule = new Rule({
 A function that returns a validation middleware that trims the string.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Params
   - `chars (Required)` : Pattern to match. ( eg : " ", "@" )
@@ -837,6 +853,7 @@ const createUserRule = new Rule({
 A function that returns a validation middleware that replaces the string.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `params (Required)`: Params
   - `new_value (Required)` : A string value
@@ -883,6 +900,7 @@ A function that returns a validation middleware that checks if the string is a v
 It only matches the pattern, to verify the jwt token please use packages like bcrypt-js.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 
@@ -913,6 +931,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the string is a strong password.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Optional)` : Params
@@ -942,6 +961,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the string is a valid email address.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Optional)` : Params
@@ -971,6 +991,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the one field value is same as another field value.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1018,6 +1039,7 @@ app.post("/post",
 A function that returns a validation middleware that checks the field that must be required with its peers.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1057,6 +1079,7 @@ app.post("/post",
 A function that returns a validation middleware that checks the field that must be required with all of its peers.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1096,6 +1119,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the date is after an specified date.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1130,6 +1154,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the date is after or equal to a specified date.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1164,6 +1189,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if the date is after or equal to a specified date.
 
 `validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Required)` : Params
@@ -1197,6 +1223,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if provided value is a valid date.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 - `params (Optional)` : Params
@@ -1233,6 +1260,7 @@ app.post("/post",
 A function that returns a validation middleware that checks if provided value is a valid mongo Id.
 
 `validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
 - `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
 - `message (Optional)` : Any custom message on failure.
 
@@ -1257,8 +1285,9 @@ app.post("/post",
 
 
 # Other
-Some other features that comes with this package are following.
-- Custom Validation Error Response: `see validation.other.test.js`
+Some other features that comes with this package are following. See `validation.other.test.js`
+- Custom Validation Error Response.
+- `bail` key to prevent validation from keep checking if current validation fails.
 
 
 # License

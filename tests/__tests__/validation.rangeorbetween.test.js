@@ -31,7 +31,7 @@ describe("RangeOrBetween Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The Field age Must Be Between 10 and 20');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('age');
+        expect(response.body.errors[0].path).toEqual('age');
     })
 
     it("should pass validation for a valid date within range",async () => {
@@ -57,7 +57,7 @@ describe("RangeOrBetween Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual('The Field birthDate Must Be Between 2023-01-01 and 2023-12-31');
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('birthDate');
+        expect(response.body.errors[0].path).toEqual('birthDate');
     })
 
     it("should pass validation for a valid date within range defined by another field",async () => {
@@ -93,6 +93,6 @@ describe("RangeOrBetween Validation Rule",  () => {
         expect(response.statusCode).toEqual(400);
         expect(response.body.errors[0].msg).toEqual("The Field birthDate Must Be Between allowedDates.min'value and allowedDates.max'value");
         expect(response.body.errors[0].location).toEqual('body');
-        expect(response.body.errors[0].param).toEqual('birthDate');
+        expect(response.body.errors[0].path).toEqual('birthDate');
     })
 })

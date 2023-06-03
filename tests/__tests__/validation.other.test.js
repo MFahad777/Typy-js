@@ -6,7 +6,6 @@ const {
     app,
     setRoute
 } = require("../config");
-const exp = require("constants");
 
 const customFunctionToCustomizeTheErrorResponse = (errors, req, res, next) => {
 
@@ -14,10 +13,10 @@ const customFunctionToCustomizeTheErrorResponse = (errors, req, res, next) => {
 
     if (validationErrors && validationErrors.length > 0) {
         const allErrors = validationErrors.reduce((acc, e) => {
-            if (acc[e.param]) {
-                acc[e.param].push(e.msg);
+            if (acc[e.path]) {
+                acc[e.path].push(e.msg);
             } else {
-                acc[e.param] = [e.msg]
+                acc[e.path] = [e.msg]
             }
 
             return acc;
@@ -73,13 +72,39 @@ describe("Some other features",  () => {
         expect(response.body.error_msgs).toMatchObject({
             name: [
                 'The field name is not of type string',
-                'The field name is not of type string',
+                'The name must be minimum 5 and maximum 10 character long',
             ],
             body: [
                 'The field body is not of type string',
-                'The field body is not of type string',
+                'The body must be minimum 5 and maximum 600 character long',
             ]
         });
         expect(response.body.data).toMatchObject({})
     })
+
+    it('should not validate further if the current validation fails', async () => {
+
+        const createRule = new Rule({
+
+            date:[
+                Validation.isString({
+                    bail: true
+                }),
+                Validation.isDate()
+            ]
+
+        });
+
+        setRoute("post","/other-2-createRule",createRule);
+
+        const response = await request(app)
+            .post("/other-2-createRule")
+            .send({ date:5 });
+
+        expect(response.statusCode).toEqual(400);
+        expect(response.body.errors.length).toEqual(1);
+        expect(response.body.errors[0].msg).toEqual('The field date is not of type string');
+        expect(response.body.errors[0].location).toEqual('body');
+        expect(response.body.errors[0].path).toEqual('date');
+    });
 })
