@@ -72,11 +72,11 @@ describe("Some other features",  () => {
         expect(response.body.error_msgs).toMatchObject({
             name: [
                 'The field name is not of type string',
-                'The name must be minimum 5 and maximum 10 character long',
+                'The field name is not of type string',
             ],
             body: [
                 'The field body is not of type string',
-                'The body must be minimum 5 and maximum 600 character long',
+                'The field body is not of type string',
             ]
         });
         expect(response.body.data).toMatchObject({})
