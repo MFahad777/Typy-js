@@ -6,20 +6,30 @@ All notable changes to this project will be documented in this file.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [v2.0.0](#v200)
+- [v2.1.0](#v210)
   - [Added](#added)
+- [v2.0.0](#v200)
+  - [Added](#added-1)
   - [Changed](#changed)
 - [v1.3.0](#v130)
-  - [Added](#added-1)
-- [v1.2.0](#v120)
   - [Added](#added-2)
-- [v1.1.0](#v110)
+- [v1.2.0](#v120)
   - [Added](#added-3)
-- [v1.0.1](#v101)
+- [v1.1.0](#v110)
   - [Added](#added-4)
+- [v1.0.1](#v101)
+  - [Added](#added-5)
   - [Fixed](#fixed)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## v2.1.0
+
+### Added
+- Add `unique` validation.
+  - See `validation.unique.test.js` for more detail usage.
+- Add `requiredWithKeys` validation.
+  - See `validation.requiredwithkeys.test.js` for more detail.
 
 ## v2.0.0
 
