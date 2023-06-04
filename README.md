@@ -68,6 +68,10 @@ there is separate test suite for each validation API.
     - [Example](#example-26)
   - [Validation.isValidMongoId(validation_options)](#validationisvalidmongoidvalidation_options)
     - [Example](#example-27)
+  - [Validation.unique(validation_options)](#validationuniquevalidation_options)
+    - [Example](#example-28)
+  - [Validation.requiredWithKeys(validation_options)](#validationrequiredwithkeysvalidation_options)
+    - [Example](#example-29)
 - [Other](#other)
 - [License](#license)
 
@@ -1273,6 +1277,74 @@ const createUser = new Rule({
   user_id:[
     Validation.isValidMongoId()
   ],
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.unique(validation_options)
+
+A function that returns a validation middleware that checks if array has unique values.
+
+`validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  hobbies:[
+    Validation.unique()
+  ],
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.requiredWithKeys(validation_options)
+
+A function that returns a validation middleware that checks if array has required keys.
+
+`validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `keys (Required)` : Array of string
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+// Use this with isArray({ bail:true }), use this as first validation element
+// Set bail true, so that if the field is not an array it will not further validate
+// Which can avoid unnecessary errors
+const createUserRule = new Rule({
+  designations:[
+    Validation.isArray({
+      bail:true
+    }),
+    Validation.requiredWithKeys({
+      params :{
+        keys: ["id","name"]
+      }
+    })
+  ]
 });
 
 app.post("/post",

@@ -27,10 +27,11 @@ import {
     IValidationIsjwtDto,
     IRequiredValidationDto,
     IValidationIsStrongPasswordDto,
-    IValidationIsEmailDto
+    IValidationIsEmailDto,
+    IValidationUniqueDto, IValidationRequiredWithKeysDto
 } from "./dtos";
 
-import {get, isEqual} from "lodash";
+import {get, isEqual, uniqWith} from "lodash";
 
 /**
  * Local Imports
@@ -427,12 +428,7 @@ export class Validation {
                 location
             }) => {
 
-                const getObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : req.params;
+                const getObject = Util.getRequestObject(req, location);
 
                 const isBetweenNumber = type === "number"
                     ? (value > +min) && (value < +max)
@@ -579,12 +575,7 @@ export class Validation {
 
                 const defaultValues = ["exists", "notexists"];
 
-                const getObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : req.params;
+                const getObject = Util.getRequestObject(req, location);
 
                 const getFieldValue = get(
                     getObject,
@@ -932,12 +923,7 @@ export class Validation {
             message = Util.replaceMessageWithField(field, message)
 
             let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
-                const getObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : req.params;
+                const getObject = Util.getRequestObject(req, location);
 
                 const appliedFieldValueIsEmpty = value === undefined || value === null || value === "" || value?.length === 0;
 
@@ -1250,14 +1236,7 @@ export class Validation {
 
             let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const requestObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : location === "headers"
-                                ? req.headers
-                                : req.params;
+                const requestObject = Util.getRequestObject(req, location);
 
                 const getOtherFieldValue = get(requestObject, params.otherField, false);
 
@@ -1319,14 +1298,7 @@ export class Validation {
 
             let chain: ValidationChain = toMatch.custom((value, {req, location}) => {
 
-                const requestObject =
-                    location === "body"
-                        ? req.body
-                        : location === "query"
-                            ? req.query
-                            : location === "headers"
-                                ? req.headers
-                                : req.params;
+                const requestObject = Util.getRequestObject(req, location);
 
                 const anyOfTheOtherFieldExists = params.fields.some((otherField: string) =>
                     Boolean(
@@ -1793,5 +1765,100 @@ export class Validation {
 
             return chain;
         }
+    }
+
+    /**
+     * Check if the array has unique values
+     *
+     * @param validation_options
+     */
+    static unique(validation_options: IValidationUniqueDto = {}): Function {
+
+        const {
+            checkIn = "any",
+            bail = false,
+        } = validation_options;
+
+        let {
+            message = `The :attribute's values are not unique`
+        } = validation_options;
+
+
+        return (field: string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            let chain: ValidationChain = toMatch.custom((value) => {
+
+                const uniqueValues: Array<any> = uniqWith(value, isEqual);
+
+                if (uniqueValues.length !== value.length) {
+                    return Promise.reject(message);
+                }
+
+                return Promise.resolve();
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+        }
+    }
+
+    /**
+     * Check if the array of objects has the required keys
+     *
+     * @param validation_options
+     */
+    static requiredWithKeys(validation_options : IValidationRequiredWithKeysDto) : Function {
+
+        const {
+            checkIn = "any",
+            bail = false,
+            params = {
+                keys : []
+            }
+        } = validation_options;
+
+        if (params.keys.length === 0) {
+            throw new Error(`(requiredWithKeys) validation must have params.keys`);
+        }
+
+        let {
+            message = `The :attribute's array must have these field ${params.keys}`
+        } = validation_options;
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            let chain : ValidationChain = toMatch.custom((value) => {
+
+                const keys = [...new Set(params.keys)];
+
+                const doesHaveRequiredKeys = value.every((obj : any) => keys.every((key : any) => key in obj));
+
+                return doesHaveRequiredKeys
+                    ? Promise.resolve()
+                    : Promise.reject(message)
+
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+
+        }
+
+
+
     }
 }
