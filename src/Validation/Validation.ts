@@ -28,7 +28,7 @@ import {
     IRequiredValidationDto,
     IValidationIsStrongPasswordDto,
     IValidationIsEmailDto,
-    IValidationUniqueDto
+    IValidationUniqueDto, IValidationRequiredWithKeysDto
 } from "./dtos";
 
 import {get, isEqual, uniqWith} from "lodash";
@@ -1807,5 +1807,58 @@ export class Validation {
 
             return chain;
         }
+    }
+
+    /**
+     * Check if the array of objects has the required keys
+     *
+     * @param validation_options
+     */
+    static requiredWithKeys(validation_options : IValidationRequiredWithKeysDto) : Function {
+
+        const {
+            checkIn = "any",
+            bail = false,
+            params = {
+                keys : []
+            }
+        } = validation_options;
+
+        if (params.keys.length === 0) {
+            throw new Error(`(requiredWithKeys) validation must have params.keys`);
+        }
+
+        let {
+            message = `The :attribute's array must have these field ${params.keys}`
+        } = validation_options;
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            let chain : ValidationChain = toMatch.custom((value) => {
+
+                const keys = [...new Set(params.keys)];
+
+                const doesHaveRequiredKeys = value.every((obj : any) => keys.every((key : any) => key in obj));
+
+                return doesHaveRequiredKeys
+                    ? Promise.resolve()
+                    : Promise.reject(message)
+
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+
+        }
+
+
+
     }
 }

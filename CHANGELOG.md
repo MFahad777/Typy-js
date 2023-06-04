@@ -28,7 +28,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add `unique` validation.
   - See `validation.unique.test.js` for more detail usage.
-
+- Add `requiredWithKeys` validation.
+  - See `validation.requiredwithkeys.test.js` for more detail.
 
 ## v2.0.0
 
