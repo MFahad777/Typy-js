@@ -68,6 +68,8 @@ there is separate test suite for each validation API.
     - [Example](#example-26)
   - [Validation.isValidMongoId(validation_options)](#validationisvalidmongoidvalidation_options)
     - [Example](#example-27)
+  - [Validation.unique(validation_options)](#validationuniquevalidation_options)
+    - [Example](#example-28)
 - [Other](#other)
 - [License](#license)
 
@@ -1272,6 +1274,34 @@ const { Rule, Validation } = require("typy-js");
 const createUser = new Rule({
   user_id:[
     Validation.isValidMongoId()
+  ],
+});
+
+app.post("/post",
+        createUserRule.createValidation(),
+        createUserRule.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
+
+## Validation.unique(validation_options)
+
+A function that returns a validation middleware that checks if array has unique values.
+
+`validation_options (Optional)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const createUserRule = new Rule({
+  hobbies:[
+    Validation.unique()
   ],
 });
 
