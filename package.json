@@ -28,12 +28,7 @@
   "homepage": "https://github.com/MFahad777/Typy-js#readme",
   "dependencies": {
     "express-validator": "^7.0.1",
-    "lodash.flattendeep": "^4.4.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isequal": "^4.5.0",
-    "lodash.map": "^4.6.0",
-    "lodash.omit": "^4.5.0",
-    "lodash.uniqwith": "^4.5.0"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/express": "^4.17.15",
