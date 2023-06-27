@@ -1369,6 +1369,7 @@ A function that returns a validation middleware that checks if certain value exi
 - `params (Required)` : Params
   - `dbConnection (Required)` : Mysql DB connection or PG client is supported.
   - `dialect (Required)` : Available values are `'mysql','pg'`
+  - `negate (Optional)` : Set to true if you want to negate the condition.
   - `tableName (Required)`: Name of the table to check in.
   - `columnToCheckAgainst (Required)` : Name of the column to check against the value.
 
