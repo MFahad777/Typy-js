@@ -27,3 +27,4 @@ export { IValidationIsDateDto } from "./validation.isdate.dto";
 export { IValidationIsValidMongoIdDto } from "./validation.isvalidmongoid.dto";
 export { IValidationUniqueDto } from "./validation.unique.dto";
 export { IValidationRequiredWithKeysDto } from "./validation.requiredwithkeys.dto";
+export { IValidationExistsDto } from "./validation.exists.dto";

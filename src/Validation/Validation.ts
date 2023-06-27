@@ -28,7 +28,7 @@ import {
     IRequiredValidationDto,
     IValidationIsStrongPasswordDto,
     IValidationIsEmailDto,
-    IValidationUniqueDto, IValidationRequiredWithKeysDto
+    IValidationUniqueDto, IValidationRequiredWithKeysDto, IValidationExistsDto
 } from "./dtos";
 
 import {get, isEqual, uniqWith} from "lodash";
@@ -38,6 +38,13 @@ import {get, isEqual, uniqWith} from "lodash";
  */
 import {Util} from "../Utils/Util";
 import {ValidationChain} from "express-validator";
+import ErrnoException = NodeJS.ErrnoException;
+
+/**
+ * Third Party Imports
+ */
+import { Connection as MySQLConnection } from "mysql2";
+import { Client as PGClient } from "pg";
 
 export class Validation {
 
@@ -1857,8 +1864,112 @@ export class Validation {
             return chain;
 
         }
+    }
 
+    static exists(validation_options : IValidationExistsDto) : Function {
 
+        const {
+            checkIn = "any",
+            bail = false,
+            params,
+        } = validation_options;
 
+        if (!params.dbConnection) {
+            throw new Error(`(exists) validation must have params.dbConnection`);
+        }
+
+        if (!params.dialect) {
+            throw new Error(`(exists) validation must have params.dialect`);
+        }
+
+        if (!params.tableName) {
+            throw new Error(`(exists) validation must have params.tableName`);
+        }
+
+        if (!params.columnToCheckAgainst) {
+            throw new Error(`(exists) validation must have params.columnToCheckAgainst`);
+        }
+
+        let {
+            message = `The :attribute's value does not exists in the database`
+        } = validation_options;
+
+        return (field : string) => {
+
+            const toMatch = Util.returnBasedOnCheckIn(checkIn, field);
+
+            message = Util.replaceMessageWithField(field, message);
+
+            let chain : ValidationChain = toMatch.custom(async (value) => {
+
+                const tableName = params.tableName;
+
+                const negate = params.negate
+                    ? params.negate
+                    : false
+
+                const column = params.columnToCheckAgainst;
+
+                const query = params.dialect === "mysql"
+                        ? `Select id from ${tableName} where ${column} = ?`
+                        : `Select id from ${tableName} where ${column} = $1`;
+
+                try {
+
+                    switch (params.dialect) {
+
+                        case "mysql": {
+
+                            const connection : MySQLConnection = params.dbConnection as MySQLConnection;
+
+                            const [rows,fields] : any = await connection.query(query, [value]);
+
+                            if (negate) {
+                                return rows.length > 0
+                                    ? Promise.reject(message)
+                                    : Promise.resolve()
+                            }
+
+                            return rows.length > 0
+                                ? Promise.resolve()
+                                : Promise.reject(message)
+                        }
+
+                        case "pg": {
+
+                            const connection : PGClient = params.dbConnection as PGClient;
+
+                            const { rows } = await connection.query(query, [value]);
+
+                            if (negate) {
+                                return rows.length > 0
+                                    ? Promise.reject(message)
+                                    : Promise.resolve()
+                            }
+
+                            return rows.length > 0
+                                ? Promise.resolve()
+                                : Promise.reject(message)
+                        }
+
+                        default : {
+                            throw new Error(`Invalid Dialect`)
+                        }
+
+                    }
+
+                }
+                catch (e : any) {
+                    return Promise.reject(`Error (exists): ${e.message}`)
+                }
+
+            });
+
+            if (bail) {
+                return chain.bail({level: "request"})
+            }
+
+            return chain;
+        }
     }
 }
