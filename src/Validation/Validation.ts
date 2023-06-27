@@ -28,7 +28,9 @@ import {
     IRequiredValidationDto,
     IValidationIsStrongPasswordDto,
     IValidationIsEmailDto,
-    IValidationUniqueDto, IValidationRequiredWithKeysDto, IValidationExistsDto
+    IValidationUniqueDto,
+    IValidationRequiredWithKeysDto,
+    IValidationExistsDto
 } from "./dtos";
 
 import {get, isEqual, uniqWith} from "lodash";
@@ -38,7 +40,6 @@ import {get, isEqual, uniqWith} from "lodash";
  */
 import {Util} from "../Utils/Util";
 import {ValidationChain} from "express-validator";
-import ErrnoException = NodeJS.ErrnoException;
 
 /**
  * Third Party Imports
