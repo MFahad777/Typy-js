@@ -6,22 +6,30 @@ All notable changes to this project will be documented in this file.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [v2.1.0](#v210)
+- [v2.2.0](#v220)
   - [Added](#added)
-- [v2.0.0](#v200)
+- [v2.1.0](#v210)
   - [Added](#added-1)
+- [v2.0.0](#v200)
+  - [Added](#added-2)
   - [Changed](#changed)
 - [v1.3.0](#v130)
-  - [Added](#added-2)
-- [v1.2.0](#v120)
   - [Added](#added-3)
-- [v1.1.0](#v110)
+- [v1.2.0](#v120)
   - [Added](#added-4)
-- [v1.0.1](#v101)
+- [v1.1.0](#v110)
   - [Added](#added-5)
+- [v1.0.1](#v101)
+  - [Added](#added-6)
   - [Fixed](#fixed)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## v2.2.0
+
+### Added
+- Add `exists` validation.
+  - See `validation.exists.test.js` for more detail usage.
 
 ## v2.1.0
 
