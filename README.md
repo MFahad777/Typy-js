@@ -72,6 +72,8 @@ there is separate test suite for each validation API.
     - [Example](#example-28)
   - [Validation.requiredWithKeys(validation_options)](#validationrequiredwithkeysvalidation_options)
     - [Example](#example-29)
+  - [Validation.exists(validation_options)](#validationexistsvalidation_options)
+    - [Example](#example-30)
 - [Other](#other)
 - [License](#license)
 
@@ -1355,6 +1357,59 @@ app.post("/post",
 });
 ```
 
+
+## Validation.exists(validation_options)
+
+A function that returns a validation middleware that checks if certain value exists in the database.
+
+`validation_options (Required)`
+- `bail (Optional)`: If set to true, rest of the validation are skipped if the current one is failed.
+- `checkIn (Optional)`: Specifies the location to check the field (e.g., "body", "query", "params"). Default is 'any'
+- `message (Optional)` : Any custom message on failure.
+- `params (Required)` : Params
+  - `dbConnection (Required)` : Mysql DB connection or PG client is supported.
+  - `dialect (Required)` : Available values are `'mysql','pg'`
+  - `negate (Optional)` : Set to true if you want to negate the condition.
+  - `tableName (Required)`: Name of the table to check in.
+  - `columnToCheckAgainst (Required)` : Name of the column to check against the value.
+
+### Example
+
+```javascript
+const { Rule, Validation } = require("typy-js");
+
+const { Client } = require("pg");
+
+const pgClient = new Client({
+  host:"localhost",
+  port:5432,
+  user:"postgres",
+  password:"123456789",
+  database:"postgres"
+})
+
+await pgClient.connect();
+
+const createPost = new Rule({
+  id:[
+    Validation.exists({
+      params:{
+        dbConnection:pgClient,
+        dialect:"pg",
+        tableName:"users", // Table Name
+        columnToCheckAgainst:"id" // Column in the table
+      }
+    }),
+  ]
+});
+
+app.post("/post",
+        createPost.createValidation(),
+        createPost.showValidationErrors(), 
+        (req,res) => {
+    res.json("Successfully Passed All Validation")
+});
+```
 
 # Other
 Some other features that comes with this package are following. See `validation.other.test.js`
